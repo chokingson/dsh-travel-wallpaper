@@ -1,0 +1,100 @@
+{
+  "name": "dsh-planet-news",
+  "version": "0.13.1",
+  "description": "旅行壁纸：带大肥鱼去旅行，每日自动生成与更换壁纸",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "test": "node --test test.mjs travel.test.mjs archive.test.mjs character.test.mjs mode.test.mjs delivery.test.mjs matrix.test.mjs widget.test.mjs delivery-api.test.mjs previews.test.mjs request-guard.test.mjs world-cases.test.mjs trip-composer.test.mjs trip-events.test.mjs trip-api.test.mjs trip-daily.test.mjs reference-library.test.mjs reference-archive.test.mjs reference-api.test.mjs daily-narrative.test.mjs downloads.test.mjs client-refresh.test.mjs native-halo.test.mjs travel-actions.test.mjs travel-refresh-api.test.mjs lockscreen.test.mjs config-store.test.mjs"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "catalog.js",
+    "desktop.js",
+    "references.js",
+    "wallpaper.ps1",
+    "cordis.patch.yml",
+    "moss-workflow.json",
+    "README.md",
+    "test.mjs",
+    "channels.js",
+    "prompt-skills.js",
+    "skills/",
+    "assets/characters/",
+    "vendor/",
+    "THIRD_PARTY_NOTICES.md",
+    "travel.test.mjs",
+    "archive.js",
+    "archive.test.mjs",
+    "character-tags.js",
+    "character.test.mjs",
+    "diary.js",
+    "mode-config.js",
+    "mode.test.mjs",
+    "delivery.js",
+    "delivery.test.mjs",
+    "matrix.test.mjs",
+    "native-widget.js",
+    "widget.test.mjs",
+    "desk-widget.ps1",
+    "delivery-api.test.mjs",
+    "desk-widget-v2.ps1",
+    "assets/styles/",
+    "assets/sounds/",
+    "previews.test.mjs",
+    "request-guard.js",
+    "request-guard.test.mjs",
+    "world-cases.js",
+    "world-cases.test.mjs",
+    "trip-composer.js",
+    "trip-composer.test.mjs",
+    "trip-events.js",
+    "trip-events.test.mjs",
+    "trip-api.test.mjs",
+    "trip-daily.test.mjs",
+    "WORLD-CASES.md",
+    "reference-library.js",
+    "reference-library.test.mjs",
+    "reference-archive.test.mjs",
+    "reference-api.test.mjs",
+    "export-zip.js",
+    "daily-narrative.js",
+    "daily-narrative.test.mjs",
+    "downloads.js",
+    "downloads.test.mjs",
+    "client-refresh.test.mjs",
+    "native-halo.test.mjs",
+    "travel-actions.js",
+    "travel-actions.test.mjs",
+    "travel-refresh-api.test.mjs",
+    "lockscreen.ps1",
+    "lockscreen.test.mjs",
+    "config-store.js",
+    "config-store.test.mjs"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  },
+  "dependencies": {
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

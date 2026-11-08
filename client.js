@@ -1,0 +1,285 @@
+window.__ModuleLoader__.load({ id: 'dsh-planet-news', factory(require) {
+  const { createElement: h, useEffect, useState, useRef } = require('react');
+  const api = '/api/planet-news';
+  let clientSession;
+  const clientBuild = '0.13.1';
+  const css = `
+    [data-planet-news]{width:100%;min-width:0;max-width:800px;display:grid;gap:18px;padding:4px 0 28px;--pn-line:color-mix(in srgb,currentColor 15%,transparent);--pn-soft:color-mix(in srgb,currentColor 4%,transparent)}
+    [data-planet-news] *{box-sizing:border-box}[data-planet-news] section,[data-planet-news] [role=tabpanel]{min-width:0}[data-planet-news] p,[data-planet-news] small{overflow-wrap:anywhere}[data-planet-news] h2,[data-planet-news] h3,[data-planet-news] h4,[data-planet-news] p{margin:0}
+    [data-planet-news] h2{font-size:24px;letter-spacing:-.03em}[data-planet-news] h3{font-size:18px}[data-planet-news] h4{font-size:14px}
+    [data-planet-news] summary{line-height:1.6}[data-planet-news] p,[data-planet-news] small{line-height:1.65}[data-planet-news] small{opacity:.72}
+    [data-planet-news] input:not([type=checkbox]):not([type=file]),[data-planet-news] select,[data-planet-news] textarea{width:100%;padding:10px 11px;min-height:40px;background:var(--pn-soft);border:1px solid var(--pn-line);border-radius:9px;color:inherit;font:inherit}
+    [data-planet-news] textarea::placeholder{color:#8b929e;opacity:1}[data-planet-news] .pn-character-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:stretch}[data-planet-news] .pn-character{display:grid;grid-template-rows:160px 22px 18px;gap:8px;min-width:0;text-align:center;padding:10px}[data-planet-news] .pn-character-name{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;line-height:22px}[data-planet-news] .pn-character-state{font-size:11px;line-height:18px;opacity:.75}[data-planet-news] .pn-character[aria-pressed=true]{border-color:#6288ed;box-shadow:inset 0 0 0 2px #6288ed;background:color-mix(in srgb,#6288ed 13%,transparent)}[data-planet-news] .pn-character:focus-visible{outline:2px solid #6288ed;outline-offset:3px}[data-planet-news] .pn-tag[aria-pressed=true]{border-color:#6288ed;box-shadow:inset 0 0 0 1px #6288ed;background:color-mix(in srgb,#6288ed 16%,transparent)}[data-planet-news] .pn-character img{width:100%;height:160px;object-fit:contain;background:#fff;border-radius:8px}[data-planet-news] option{background:Canvas;color:CanvasText}[data-planet-news] textarea{resize:vertical;line-height:1.65}
+    [data-planet-news] button{border:1px solid var(--pn-line);border-radius:9px;background:var(--pn-soft);color:inherit;padding:9px 12px;font:inherit;cursor:pointer;line-height:1.4;max-width:100%;overflow-wrap:anywhere}
+    [data-planet-news] button:hover{background:color-mix(in srgb,currentColor 9%,transparent)}[data-planet-news] button:disabled{opacity:.45;cursor:default}
+    [data-planet-news] .pn-primary{background:#426bdf;color:#fff;border-color:#426bdf}[data-planet-news] .pn-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}[data-planet-news] .pn-head>div{min-width:0}
+    [data-planet-news] .pn-nav{display:flex;gap:5px;flex-wrap:wrap;border-bottom:1px solid var(--pn-line);padding-bottom:12px}[data-planet-news] .pn-nav button{border:0;background:transparent;font-size:13px}
+    [data-planet-news] .pn-nav button[aria-selected=true]{background:color-mix(in srgb,#567de5 18%,transparent);color:#668bf6;font-weight:600}
+    [data-planet-news] .pn-modebar{display:grid;grid-template-columns:minmax(180px,240px) 1fr;align-items:center;gap:14px;padding:12px;border:1px solid var(--pn-line);border-radius:12px}[data-planet-news] .pn-card{padding:18px;border:1px solid var(--pn-line);border-radius:14px;display:grid;gap:14px;background:var(--pn-soft)}
+    [data-planet-news] .pn-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}[data-planet-news] label{display:grid;gap:7px;font-size:13px;line-height:1.5;min-width:0}
+    [data-planet-news] .pn-check{display:flex;align-items:center;gap:9px;font-size:14px}[data-planet-news] .pn-check input{width:17px;height:17px;flex-shrink:0}
+    [data-planet-news] .pn-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}[data-planet-news] .pn-status{padding:12px 14px;border-left:3px solid #7c9b8a;background:var(--pn-soft);border-radius:0 9px 9px 0;font-size:13px;line-height:1.6}
+    [data-planet-news] .pn-travel-action{display:grid;gap:4px;flex:1 1 190px;min-width:0;max-width:250px}[data-planet-news] .pn-reference-name{min-height:100px;resize:vertical;overflow-wrap:anywhere;white-space:pre-wrap}[data-planet-news] .pn-upload-state{overflow-wrap:anywhere;color:#7c9b8a}[data-planet-news] .pn-travel-action small{font-size:11px;line-height:1.4}
+    [data-planet-news] .pn-style-grid{display:flex;flex-wrap:wrap;gap:6px}[data-planet-news] .pn-style{display:block;text-align:left;padding:5px 9px;min-height:32px;font-size:12px;border-radius:7px}
+    [data-planet-news] .pn-style[aria-pressed=true]{outline:2px solid #6a8def;outline-offset:-2px}[data-planet-news] .pn-swatch{height:5px;width:35px;border-radius:8px}
+    [data-planet-news] .pn-style-preview{position:fixed;z-index:10001;pointer-events:none;border:1px solid #6b85bd;border-radius:12px;overflow:hidden;background:#182031;color:#eef3ff;box-shadow:0 12px 35px #0007}[data-planet-news] .pn-style-preview img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#10131b}[data-planet-news] .pn-style-preview div{padding:10px 12px;display:grid;gap:3px;font-size:13px}
+    [data-planet-news] .pn-style-text{color:#df6262;white-space:pre-wrap;line-height:1.75}[data-planet-news] .pn-tags{display:flex;gap:6px;flex-wrap:wrap}[data-planet-news] .pn-tag{border-radius:100px;padding:4px 9px;font-size:12px}
+    [data-planet-news] .pn-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}[data-planet-news] .pn-photo{padding:0;overflow:hidden;display:grid;text-align:left}
+    [data-planet-news] .pn-photo img{width:100%;aspect-ratio:16/9;object-fit:contain;background:#101216;display:block}[data-planet-news] .pn-caption{padding:11px;display:grid;gap:5px;line-height:1.5;font-size:13px}
+    [data-planet-news] .pn-reference img{max-width:100%;max-height:260px;object-fit:contain;border-radius:8px;background:#151719}[data-planet-news] .pn-prompt{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:13px;line-height:1.85;margin:0}
+    [data-planet-news] .pn-modal{position:fixed;inset:0;z-index:10000;background:#0009;display:flex;align-items:center;justify-content:center;padding:28px}
+    [data-planet-news] .pn-dialog{background:Canvas;color:CanvasText;border-radius:16px;max-width:980px;width:100%;max-height:90vh;overflow:auto;padding:22px;display:grid;gap:16px;box-shadow:0 16px 80px #0007}
+    [data-planet-news] .pn-dialog img{max-width:100%;max-height:48vh;object-fit:contain;justify-self:center;border-radius:8px}[data-planet-news] .pn-badge{font-size:11px;border:1px solid var(--pn-line);border-radius:6px;padding:3px 7px}
+    @media(max-width:550px){[data-planet-news] .pn-fields{grid-template-columns:1fr}[data-planet-news] .pn-custom-references{grid-template-columns:1fr}[data-planet-news] .pn-modebar{grid-template-columns:1fr}[data-planet-news] .pn-gallery{grid-template-columns:1fr}[data-planet-news] .pn-modal{padding:10px}}
+  `;
+  async function request(payload, query = '', retried = false) {
+    let token;
+    if(payload){
+      clientSession??=fetch(api+'?clientSession',{cache:'no-store'}).then(async response=>{const value=await response.json();if(!response.ok||typeof value.writeToken!=='string')throw new Error('请加载匹配版本的旅行壁纸设置页面');return value.writeToken;}).catch(error=>{clientSession=null;throw error;});
+      token=await clientSession;
+    }
+    const response = await fetch(api + query, payload ? { method: 'POST', headers: { 'content-type': 'application/json','x-travel-client-key':token }, body: JSON.stringify({...payload,clientToken:token}), signal:['tags','trip-generate'].includes(payload.action)?AbortSignal.timeout(75000):undefined } : {});
+    const data = await response.json();
+    if(response.status===403&&!retried&&data.error?.includes('写入会话')){clientSession=null;return request(payload,query,true);}
+    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`); return data;
+  }
+  const tabs = [['daily','每日壁纸'],['reference','参考图'],['prompt','创作提示词'],['gallery','已到访世界'],['channels','渠道设置']];
+  const tags = text => text.split(/[,，、\n]/).map(item => item.trim()).filter(Boolean);
+  const card = (title, ...children) => h('section', { className: 'pn-card' }, h('h3', null, title), ...children);
+  const promptView = (parts, prompt = '') => h('pre', { className: 'pn-prompt' }, ...(parts?.length ? parts : [{ kind: 'scene', text: prompt }]).map((part, i) => h('span', { key: i, className: part.kind === 'style' ? 'pn-style-text' : '' }, part.text)));
+  function Panel() {
+    const [config,setConfig]=useState(null),[status,setStatus]=useState({}),[booking,setBooking]=useState(null),[pendingAction,setPendingAction]=useState(''),[tab,setTab]=useState('daily'),[feedback,setFeedback]=useState(''),[busy,setBusy]=useState(false);
+    const [catalog,setCatalog]=useState({styles:[],worlds:[],resolutions:[]}),[profiles,setProfiles]=useState([]),[providers,setProviders]=useState([]),[models,setModels]=useState([]);
+    const [preview,setPreview]=useState(null),[issues,setIssues]=useState([]),[visitedWorlds,setVisitedWorlds]=useState([]),[worldInfo,setWorldInfo]=useState(null),[archiveLoading,setArchiveLoading]=useState(false),[archiveTotal,setArchiveTotal]=useState(0),[archiveSkipped,setArchiveSkipped]=useState(0),[nextOffset,setNextOffset]=useState(null),[deliveryInfo,setDeliveryInfo]=useState(null),[letters,setLetters]=useState([]),[inboxLoading,setInboxLoading]=useState(false),[inboxOffset,setInboxOffset]=useState(null),[roleFilter,setRoleFilter]=useState('all'),[worldsLoading,setWorldsLoading]=useState(true),[selected,setSelected]=useState(null),[version,setVersion]=useState(''),[customTag,setCustomTag]=useState(''),[seed,setSeed]=useState(''),[dirty,setDirty]=useState(false),[randomizing,setRandomizing]=useState(false),[apiKey,setApiKey]=useState(''),[apiEndpoint,setApiEndpoint]=useState(''),[apiModel,setApiModel]=useState(''),[loginUrl,setLoginUrl]=useState('');
+    const randomLock=useRef(false),archiveRequest=useRef(0),worldListRequest=useRef(0),roleFilterRef=useRef('all'),touched=useRef(new Set()),inboxRequest=useRef(0),worldStarted=useRef(0),directoryEdit=useRef(0),operationLock=useRef(false),statusRef=useRef({}),configRef=useRef(null),editRevisions=useRef({}),serverEpoch=useRef(0),pollTicket=useRef(0),referenceInputs=useRef([]);
+    statusRef.current=status;configRef.current=config;
+    const [referenceLibrary,setReferenceLibrary]=useState({groups:[],slots:[{},{},{}]}),[referenceNames,setReferenceNames]=useState(['','','']),[archiveFilters,setArchiveFilters]=useState([]);
+    const [tripInput,setTripInput]=useState(''),[tripCandidate,setTripCandidate]=useState(null),[tripDirty,setTripDirty]=useState(false),[tripStatus,setTripStatus]=useState('');
+    const [worldNotice,setWorldNotice]=useState(''),[worldWait,setWorldWait]=useState(0),[hoverStyle,setHoverStyle]=useState(null);
+    useEffect(()=>{if(!randomizing)return;const timer=setInterval(()=>setWorldWait(Math.floor((Date.now()-worldStarted.current)/1000)),1000);return()=>clearInterval(timer);},[randomizing]);
+    useEffect(()=>{const profile=profiles.find(i=>i.provider===config?.imageChannel);setApiEndpoint(profile?.endpoint||'');setApiModel(profile?.model||'');setApiKey('');setLoginUrl('');},[config?.imageChannel,profiles]);
+    const update=patch=>{if('downloadDirectory' in patch)directoryEdit.current++;Object.keys(patch).forEach(key=>{touched.current.add(key);editRevisions.current[key]=(editRevisions.current[key]||0)+1;});setConfig(value=>({...value,...patch}));setDirty(true);};
+    const roleMode=config?.rolesEnabled!==false;
+    const modeFields={world:'observerWorld',era:'observerEra',tripPrompt:'observerTripPrompt',tripSource:'observerTripSource',tripCaseId:'observerTripCaseId',tripTimeId:'observerTripTimeId',tripGenerationId:'observerTripGenerationId',tripMeta:'observerTripMeta',tripConfirmedAt:'observerTripConfirmedAt',tripStartDay:'observerTripStartDay',imageToImage:'observerImageToImage',referenceId:'observerReferenceId',referenceInstructions:'observerReferenceInstructions',textPrompt:'observerTextPrompt',topic:'observerTopic',tags:'observerTags',rules:'observerRules',extraPrompt:'observerExtraPrompt',textContent:'observerTextContent'};
+    const activeKey=key=>roleMode?key:modeFields[key]||key;
+    const current=key=>config?.[activeKey(key)];
+    const updateMode=patch=>update(Object.fromEntries(Object.entries(patch).filter(([key])=>roleMode||key!=='characters').map(([key,value])=>[activeKey(key),value])));
+    useEffect(()=>{
+      if(!config)return;
+      const draftKey='travel-wallpaper-trip-draft-'+(roleMode?'role':'observer');
+      try{const draft=JSON.parse(localStorage.getItem(draftKey)||'null');if(draft?.dirty){setTripInput(draft.text||'');setTripCandidate(draft.candidate||null);setTripDirty(true);setTripStatus('已恢复本机尚未确认的创作草稿。');return;}}catch{}
+      let meta={};try{meta=JSON.parse(current('tripMeta')||'{}');}catch{}
+      const source=current('tripSource'),prompt=current('tripPrompt')||'';
+      setTripInput(source==='user'?prompt:(!source?current('textPrompt')||'':''));
+      setTripCandidate(source&&source!=='user'?{source,prompt,world:meta.world||config.world,caseId:current('tripCaseId'),timeId:current('tripTimeId'),id:current('tripGenerationId'),confirmed:true,provider:meta.provider,model:meta.model}:null);
+      setTripDirty(false);setTripStatus(source?'当前行程已确认，修改后请再次确认。':'旧行程仍保留；输入或抽取新创作并确认后，才用于下一次自动任务。');
+    },[roleMode,config?.tripConfirmedAt,config?.observerTripConfirmedAt]);
+    useEffect(()=>{try{const key='travel-wallpaper-trip-draft-'+(roleMode?'role':'observer');if(tripDirty)localStorage.setItem(key,JSON.stringify({text:tripInput,candidate:tripCandidate,dirty:true}));else localStorage.removeItem(key);}catch{}},[tripInput,tripCandidate,tripDirty,roleMode]);
+
+
+    const setArchive=data=>{if(data.filters)setArchiveFilters(data.filters);setVisitedWorlds(data.worlds);setArchiveTotal(data.total);setArchiveSkipped(data.skipped||0);};
+    async function loadWorld(world,offset=0){
+      const ticket=++archiveRequest.current;const character=roleFilterRef.current;setArchiveLoading(true);if(!offset){setWorldInfo(world);setIssues([]);setNextOffset(null);}
+      try{const data=await request(null,`?world=${encodeURIComponent(world.id)}&offset=${offset}&character=${character}`);if(ticket!==archiveRequest.current)return;
+        setWorldInfo(data.world);setIssues(value=>offset?[...value,...data.issues]:data.issues);setNextOffset(data.nextOffset);setArchiveSkipped(data.skipped||0);
+      }catch(error){if(ticket===archiveRequest.current)setFeedback(error.message);}finally{if(ticket===archiveRequest.current)setArchiveLoading(false);}
+    }
+    function backWorlds(){archiveRequest.current++;setWorldInfo(null);setIssues([]);setNextOffset(null);setArchiveLoading(false);}
+    async function fetchWorlds(){const ticket=++worldListRequest.current,role=roleFilterRef.current;setWorldsLoading(true);try{const data=await request(null,'?worlds&character='+role);if(ticket===worldListRequest.current&&role===roleFilterRef.current)setArchive(data);}finally{if(ticket===worldListRequest.current)setWorldsLoading(false);}}
+    function switchRole(role){roleFilterRef.current=role;setRoleFilter(role);backWorlds();setVisitedWorlds([]);setArchiveTotal(0);setFeedback('');fetchWorlds().catch(error=>setFeedback(error.message));}
+    const refresh=async()=>{const ticket=archiveRequest.current;await fetchWorlds();if(worldInfo&&ticket===archiveRequest.current)await loadWorld(worldInfo);};
+    useEffect(()=>{let mounted=true;const handle=fn=>data=>{if(mounted)fn(data);};
+      request().then(handle(data=>{setConfig(data.config);statusRef.current=data.status;setStatus(data.status);setBooking(data.booking||null);setVersion(data.version);}),handle(error=>setFeedback(error.message)));
+      request(null,'?referenceLibrary').then(data=>{setReferenceLibrary(data);setReferenceNames(data.slots.map(slot=>slot.referenceId?slot.name:''));},()=>{});request(null,'?catalog').then(handle(setCatalog),()=>{});request(null,'?channels').then(handle(data=>setProfiles(data.profiles)),()=>{});
+      request(null,'?providers').then(handle(data=>setProviders(data.providers)),()=>{});fetchWorlds().catch(handle(error=>setFeedback(error.message)));
+      const timer=setInterval(()=>{const epoch=serverEpoch.current,ticket=++pollTicket.current;request().then(handle(data=>{if(operationLock.current||epoch!==serverEpoch.current||ticket!==pollTicket.current)return;statusRef.current=data.status;setStatus(data.status);setBooking(data.booking||null);setVersion(data.version);setConfig(value=>value?{...value,...Object.fromEntries(Object.entries(data.config).filter(([key])=>!touched.current.has(key)))}:data.config);}),()=>{});},2500);return()=>{mounted=false;archiveRequest.current++;worldListRequest.current++;inboxRequest.current++;clearInterval(timer);};},[]);
+    useEffect(()=>{let mounted=true;setModels([]);if(config?.textProvider)request(null,'?models='+encodeURIComponent(config.textProvider)).then(data=>{if(mounted)setModels(data.models);},()=>{});return()=>{mounted=false;};},[config?.textProvider]);
+    useEffect(()=>{if(['published','error'].includes(status.state))refresh().catch(()=>{});},[status.state,status.issueId]);
+    const refreshDelivery=()=>request(null,'?delivery').then(setDeliveryInfo);
+    async function loadInbox(offset=0){const ticket=++inboxRequest.current;setInboxLoading(true);try{const data=await request(null,'?inbox&offset='+offset);if(ticket!==inboxRequest.current)return;setLetters(value=>offset?[...value,...data.letters]:data.letters);setInboxOffset(data.nextOffset);}catch(error){if(ticket===inboxRequest.current)setFeedback(error.message);}finally{if(ticket===inboxRequest.current)setInboxLoading(false);}}
+    const readLetter=letter=>{if(letter.readAt)return;request({action:'letter-read',id:letter.id}).then(()=>{setLetters(items=>items.map(item=>item.id===letter.id?{...item,readAt:new Date().toISOString()}:item));refreshDelivery().catch(()=>{});},error=>setFeedback(error.message));};
+    useEffect(()=>{let live=true;const refresh=()=>request(null,'?delivery').then(data=>{if(live)setDeliveryInfo(data);},()=>{});refresh();const timer=(config?.newsBallEnabled||(config?.lettersEnabled&&config?.rolesEnabled!==false))?setInterval(refresh,5000):null;return()=>{live=false;if(timer)clearInterval(timer);};},[config?.newsBallEnabled,config?.lettersEnabled,config?.rolesEnabled]);
+    useEffect(()=>{if(tab!=='inbox')return;loadInbox();return()=>{inboxRequest.current++;};},[tab]);
+    useEffect(()=>{if(!selected)return;const close=e=>{if(e.key==='Escape')setSelected(null);};document.addEventListener('keydown',close);return()=>document.removeEventListener('keydown',close);},[selected]);
+    const field=(key,label,o={})=>{key=activeKey(key);return h('label',{key},label,o.choices?h('select',{disabled:randomizing,value:config[key],onChange:e=>updateMode({[key]:e.target.value})},...o.choices.map(([value,text])=>h('option',{key:value,value},text))):h(o.area?'textarea':'input',{disabled:randomizing,type:o.type||'text',list:o.list,value:config[key]??'',rows:o.area?o.rows||3:undefined,min:o.min,max:o.max,placeholder:o.placeholder,onChange:e=>updateMode({[key]:o.type==='number'?Number(e.target.value):e.target.value})}))};
+    const button=(text,action,primary=false)=>h('button',{type:'button',disabled:busy,onClick:action,className:primary?'pn-primary':undefined},text);
+    async function perform(operation){if(operationLock.current)return;operationLock.current=true;serverEpoch.current++;setBusy(true);setFeedback('');try{await operation();}catch(error){setFeedback(error.message);}finally{serverEpoch.current++;operationLock.current=false;setBusy(false);setPendingAction('');}}
+    async function save(){
+      serverEpoch.current++;const keys=[...touched.current],revisions={...editRevisions.current};
+      const data=keys.length?await request({config:Object.fromEntries(keys.map(key=>[key,configRef.current[key]]))}):await request();
+      serverEpoch.current++;for(const key of keys)if(editRevisions.current[key]===revisions[key])touched.current.delete(key);
+      setConfig(value=>({...data.config,...Object.fromEntries([...touched.current].map(key=>[key,value[key]]))}));setDirty(touched.current.size>0);return data.config;
+    }
+    const submit=action=>perform(async()=>{
+      if(action&&statusRef.current.state==='running')throw new Error('正在生成中，请稍等完成后再制作。');
+      if(action&&tripDirty&&!['travel-now','book-travel'].includes(action))throw new Error('请先点击“确认此行程”，候选内容还没有用于每日任务。');
+      setPendingAction(action||'');await save();
+      if(action==='preview'){setPreview(await request({action}));setFeedback('提示词已整理，画风片段标红');}
+      else if(action==='book-travel'){serverEpoch.current++;const data=await request({action});serverEpoch.current++;setBooking(data.booking);setFeedback('明日盲盒旅行已预订，角色与参考图已锁定。');}
+      else if(action){serverEpoch.current++;const data=await request({action});serverEpoch.current++;statusRef.current=data.status;setStatus(data.status);setFeedback('已开始制作，完成后自动更换');}
+      else setFeedback(tripDirty?'基础设置已保存；创作候选仍需单独确认。':'设置已保存');
+    });
+    const cancelBooking=()=>perform(async()=>{serverEpoch.current++;const data=await request({action:'cancel-travel-booking'});serverEpoch.current++;setBooking(data.booking||null);setFeedback('盲盒旅行预订已取消');});
+    const applyIssue=(issue,all=false)=>perform(async()=>{await save();setStatus((await request({action:'apply',issueId:issue.issueId,index:issue.index,all})).status);setFeedback(all?'已开启这组图片轮播':'已确认设为壁纸');});
+    const useReference=issue=>perform(async()=>{const data=await request({action:'reference',issueId:issue.issueId,index:issue.index});setReferenceLibrary(data.library);setReferenceNames(data.library.slots.map(s=>s.name==='自定义'?'':s.name));update({referenceId:data.reference.id,characters:data.reference.name,rolesEnabled:true,imageToImage:true});setSelected(null);setTab('reference');setFeedback('已存入自定义角色槽位1，请填写需求并保存');});
+    const upload=(file,slot=0)=>perform(async()=>{if(!file)return;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>16*1024*1024)throw new Error('请选择16 MB以内的PNG、JPEG或WebP');
+      const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result.split(',')[1]);reader.onerror=()=>reject(new Error('读取图片失败'));reader.readAsDataURL(file);});
+      const result=await request({action:'upload',name:file.name,characterName:referenceNames[slot]||'',slot,data});setReferenceLibrary(result.library);update({referenceId:result.reference.id,characters:result.reference.name,rolesEnabled:true,imageToImage:true});fetchWorlds().catch(()=>{});setFeedback('角色参考图已保存，分类按名称关联；保存设置后用于旅行');});
+    const selectReference=slot=>{if(!slot.referenceId)return;update({referenceId:slot.referenceId,characters:slot.name,rolesEnabled:true,imageToImage:true});setFeedback('已选择 '+slot.name+'，保存后用于旅行');};
+    const renameReference=slot=>perform(async()=>{const value=referenceLibrary.slots[slot];if(!value?.identityId)throw new Error('请先上传这个槽位的角色图');const data=await request({action:'rename-reference',identityId:value.identityId,name:referenceNames[slot]||''});setReferenceLibrary(data.library);if(current('referenceId')===value.referenceId)update({characters:referenceNames[slot]||'自定义'});await fetchWorlds();setFeedback('名称已保存，历史旅行分类同步更新');});
+    const hideCategory=()=>perform(async()=>{await request({action:'hide-character',identityId:roleFilter});switchRole('all');setFeedback('分类已移除，壁纸仍保留在全部旅行；再次使用该参考角色可恢复');});
+    async function downloadFile(query,filename){
+      let directory=config.downloadDirectory||'';
+      if(touched.current.has('downloadDirectory')){const revision=directoryEdit.current,saved=await request({config:{downloadDirectory:directory}});directory=saved.config.downloadDirectory;if(directoryEdit.current===revision){setConfig(value=>({...value,downloadDirectory:directory}));touched.current.delete('downloadDirectory');setDirty(touched.current.size>0);}}
+      if(directory){const params=new URLSearchParams(query),payload={action:'save-export'};for(const key of ['download','index','exportWorld','character'])if(params.has(key))payload[key]=params.get(key);const result=await request(payload);setFeedback('已导出至 '+result.path);return;}
+      const response=await fetch(api+query);if(!response.ok){const data=await response.json();throw new Error(data.error||'导出失败');}
+      const disposition=response.headers.get('content-disposition')||'',utf8Name=disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+      const suggested=filename.endsWith('.zip')?filename:(utf8Name?decodeURIComponent(utf8Name):(disposition.match(/filename="([^"]+)"/)?.[1]||filename)),extension=suggested.match(/\.(png|jpg|webp|zip)$/i)?.[0]||'.png';
+      const cleanStem=suggested.replace(/\.(png|jpg|webp|zip)$/i,'').replace(/[<>:"/\\|?*\x00-\x1f]/g,'_');let stem='',nameBytes=0;for(const char of cleanStem){const bytes=encodeURIComponent(char).replace(/%[0-9a-f]{2}|./gi,'x').length;if(nameBytes+bytes>220)break;stem+=char;nameBytes+=bytes;}const name=stem+extension;
+      const blob=await response.blob(),url=URL.createObjectURL(blob);
+      try{
+        if(window.dshDesktop?.fileActions?.save){const result=await window.dshDesktop.fileActions.save({url,name,mediaType:blob.type,mode:'download'});setFeedback(result.status==='saved'?'已导出至 '+result.path:'已取消导出');}
+        else{const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setFeedback('已发起下载，请查看浏览器下载列表');}
+      }finally{setTimeout(()=>URL.revokeObjectURL(url),60000);}
+    }
+    function chooseBuiltin(caseId){
+      if(randomLock.current)return;
+      const list=catalog.worldCases||[];const pool=caseId?list.filter(item=>item.id===caseId):list.filter(item=>item.id!==tripCandidate?.caseId);
+      if(!pool.length){setTripStatus('内置案例尚未加载，请稍候再摇。');return;}
+      const item=pool[Math.floor(Math.random()*pool.length)],choice=item.choices[Math.floor(Math.random()*item.choices.length)];
+      const role=roleMode?catalog.characters[Math.floor(Math.random()*catalog.characters.length)]:null;if(role)update({characters:role.character,referenceId:role.referenceId,imageToImage:true});
+      const prompt=(roleMode?choice.rolePrompt:choice.observerPrompt).replaceAll('〔所选角色〕',role?.character||'当前选定的旅行角色');
+      setTripInput('');setTripCandidate({source:'builtin',caseId:item.id,timeId:choice.time.id,world:item.world,prompt,confirmed:false});setTripDirty(true);setTripStatus('内置预设候选 · 未调用DSH模型。灰字尚未生效，点击“确认此行程”保存。');
+    }
+    async function createDshWorld(){
+      if(randomLock.current)return;randomLock.current=true;worldStarted.current=Date.now();setWorldWait(0);setRandomizing(true);setBusy(true);setTripStatus('正在请求DSH创作，正文与候选暂时保留…');
+      try{const data=await request({action:'trip-generate',seed:tripInput.trim(),rolesEnabled:roleMode,...(roleMode?{characters:config.characters}:{})});
+        if(!data.candidate||data.candidate.source!=='dsh'||!data.candidate.id||!data.candidate.prompt)throw new Error('DSH创作记录不完整');
+        const candidate=data.candidate;setTripInput('');setTripCandidate({source:'dsh',id:candidate.id,prompt:candidate.prompt,world:candidate.idea.world,provider:candidate.provider,model:candidate.model,confirmed:false});setTripDirty(true);setTripStatus('DSH已真实返回新案例 · 推理Off · 尚未确认；未用内置模板替代。');
+      }catch(error){setTripStatus('DSH创作失败：'+error.message+'。原正文/候选未变，可使用内置预设或重试。');}
+      finally{randomLock.current=false;setRandomizing(false);setBusy(false);}
+    }
+    async function confirmTrip(){
+      const choice=tripInput.trim()?{text:tripInput}:{...(tripCandidate?.source==='builtin'?{caseId:tripCandidate.caseId,timeId:tripCandidate.timeId}:{generationId:tripCandidate?.id})};
+      const patch=Object.fromEntries([...touched.current].map(key=>[key,config[key]]));patch.rolesEnabled=roleMode;if(roleMode)patch.characters=config.characters;
+      const data=await request({action:'trip-confirm',config:patch,choice});
+      try{localStorage.removeItem('travel-wallpaper-trip-draft-'+(roleMode?'role':'observer'));}catch{}
+      touched.current.clear();setDirty(false);setTripDirty(false);setConfig(data.config);setPreview(null);
+      setTripStatus(data.config.enabled?'行程已确认并保存，从下一日按每日时间运行；不会因为确认而立即生图。':'行程已确认并保存；每日自动更新尚未开启，可在每日页打开。');setFeedback('创作行程已确认并保存。');
+    }
+    const tripComposer=()=>card('创作提示词',
+      h('textarea',{'aria-label':'旅行创作正文',rows:13,maxLength:6000,value:tripInput,disabled:randomizing,placeholder:tripCandidate?.prompt||'写下想去的世界、时间、社会、主要矛盾与当日画面。也可以先摇一个内置案例；灰色候选需要确认后才生效。',onChange:e=>{setTripInput(e.target.value);setTripDirty(true);}}),
+      h('div',{className:'pn-actions'},button('摇一个内置世界 · 50',()=>chooseBuiltin()),button(randomizing?'DSH创作中…':'让DSH创作新世界',createDshWorld),h('button',{id:'pn-confirm-trip',type:'button',className:'pn-primary',disabled:busy||(!tripInput.trim()&&!tripCandidate),onClick:()=>perform(confirmTrip)},'确认此行程')),
+      h('select',{'aria-label':'内置世界案例',disabled:busy,value:tripCandidate?.source==='builtin'?tripCandidate.caseId:'',onChange:e=>{if(e.target.value)chooseBuiltin(e.target.value);}},h('option',{value:''},'也可直接选择一个内置案例'),...(catalog.worldCases||[]).map(item=>h('option',{key:item.id,value:item.id},item.world))),
+      h('div',{className:'pn-status',role:'status','aria-live':'polite','aria-busy':randomizing},randomizing?'正在等待DSH文本模型返回 · 已等待'+worldWait+'秒 · 推理Off':tripStatus),
+      h('small',null,tripInput.trim()?'当前有效候选来源：你的正文。输入内容覆盖灰字；确认后保存。':tripCandidate?'当前灰字来源：'+(tripCandidate.source==='builtin'?'内置固定案例':'DSH真实创作'+(tripCandidate.model?' · '+tripCandidate.model:''))+(tripCandidate.confirmed?' · 已确认':' · 未确认'):'尚未选择新行程。'),
+      h('small',null,'内置随机不调用模型；DSH创作使用文本模型生成额外新案例，失败会直说，不伪装成预设结果。先定世界再定时间；角色按旅行方式开关决定是否出现。'),
+      current('tripConfirmedAt')&&h('small',null,'已保存行程从 '+(current('tripStartDay')||'下一次任务')+' 起用于自动任务；手动制作仍需你主动操作。'));
+    const showStylePreview=(style,event)=>{const rect=event.currentTarget.closest('.pn-style-grid').getBoundingClientRect(),width=Math.min(340,window.innerWidth-24,(window.innerHeight-100)*16/9),height=width*9/16+62;setHoverStyle({style,width,left:Math.max(12,Math.min(rect.left+rect.width/2-width/2,window.innerWidth-width-12)),top:Math.max(12,rect.top-height-12)});};
+    useEffect(()=>{if(!hoverStyle)return;const layer=document.createElement('div');layer.setAttribute('data-planet-news','');layer.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:2147483000;max-width:none;display:block;padding:0;margin:0';const box=document.createElement('section');box.className='pn-style-preview';box.style.cssText='left:'+hoverStyle.left+'px;top:'+hoverStyle.top+'px;width:'+hoverStyle.width+'px';const img=document.createElement('img');img.src=api+'?stylePreview='+encodeURIComponent(hoverStyle.style.id);img.alt=hoverStyle.style.name+'画风预览';const caption=document.createElement('div');caption.textContent=hoverStyle.style.name+' · GPT订阅实测样图（仅预览）';box.append(img,caption);layer.appendChild(box);document.body.appendChild(layer);const dismiss=()=>setHoverStyle(null);window.addEventListener('resize',dismiss);window.addEventListener('scroll',dismiss,true);return()=>{layer.remove();window.removeEventListener('resize',dismiss);window.removeEventListener('scroll',dismiss,true);};},[hoverStyle]);
+    const check=(key,label,extra={})=>{key=activeKey(key);return h('label',{className:'pn-check'},h('input',{type:'checkbox',disabled:randomizing,checked:Boolean(config[key]),onChange:e=>updateMode({[key]:e.target.checked,...(key==='usePromptSkills'?{promptMode:e.target.checked?'llm':'direct'}:{}),...extra})}),label)};
+    const characterPicker=(withImages=true)=>h('div',null,h('h4',null,withImages?'角色 · 参考谁的形象':'角色标签 · 带谁去旅行'),h('div',{className:withImages?'pn-character-grid':'pn-tags'},...(catalog.characters||[]).map(character=>{
+      const chosen=withImages?current('referenceId')===character.referenceId:(character.aliases||[]).some(alias=>(config.characters||'').toLowerCase().includes(alias));
+      return h('button',{key:character.id,className:withImages?'pn-character':'pn-tag',type:'button',disabled:busy,'aria-label':character.name,'aria-pressed':chosen,title:character.character,onClick:()=>updateMode({characters:character.character,...(withImages?{referenceId:character.referenceId}:{})})},
+        withImages&&h('img',{src:`${api}?referenceImage=${character.referenceId}`,alt:character.name,loading:'lazy'}),h('span',{className:withImages?'pn-character-name':undefined},character.name),withImages&&h('span',{className:'pn-character-state'},chosen?'✓ 已选':'选择参考角色'));
+    })),h('small',null,withImages?'图片仅在图生图模式开启时用于生成，支持上传任意自定义参考图。':'只填入角色标签描述，不读取、不更换参考图片；完整描述可在下方修改。'));
+    const makeDiary=issue=>perform(async()=>{if(dirty)await save();setFeedback('正在写旅行小便笺…');const data=await request({action:'diary',issueId:issue.issueId,index:issue.index});
+      setSelected(current=>current&&current.issueId===issue.issueId&&current.index===issue.index?{...current,diary:data.diary,diaryError:''}:current);
+      setIssues(items=>items.map(item=>item.issueId===issue.issueId&&item.index===issue.index?{...item,diary:data.diary,diaryError:''}:item));setFeedback('旅行小便笺已存本机');});
+    const addTag=()=>{updateMode({tags:[...new Set([...tags(current('tags')),...tags(customTag)])].join('，')});setCustomTag('');};
+    const running=status.state==='running';
+    const stages={world:'正在创作盲盒新世界',prompt:'正在整理画面提示词',image:'正在生成壁纸',applying:'正在设置壁纸',diary:roleMode?'正在写旅行小便笺':'正在整理世界见闻',briefing:roleMode?'正在准备本次来信与世界见闻':'正在准备本次世界见闻'};
+    const statusText=status.error||(running?`${stages[status.stage]||'正在生成壁纸'}${status.total?` · 已保存 ${status.completed||0}/${status.total} 张`:''}`:status.state==='published'?`${status.day||''} 新壁纸已生成并更换${status.images?.length>1?` · ${status.images.length} 张`:''}`:status.state==='no-story'?'暂无合适新选题，可切换世界故事':status.state==='creating'?'上次未完成，可重新制作':'等待每日任务');
+    const activeAction=running?(status.action==='booked-travel'?'book-travel':status.action==='interaction'?'run':status.action||'run'):pendingAction;
+    const generationButton=(action,label)=>h('button',{type:'button',disabled:busy||running,'aria-busy':(running||busy)&&activeAction===action,onClick:()=>submit(action)},activeAction===action&&(running||busy)?(action==='book-travel'&&!running?'预订中…':'生成中，稍等'):label);
+    const bookingTime=booking?`${booking.day} ${String(booking.hour).padStart(2,'0')}:00（中国时间）`:'';
+    return h('section',{'data-planet-news':''},
+      h('header',{className:'pn-head'},h('div',null,h('h2',null,'旅行壁纸'),h('small',null,roleMode?'带心爱的角色去旅行，是当旅客？扶老奶奶过马路？还是毁世界，由你主导。':'每天看见一个新世界 · 记录世界与事件')),h('span',{className:'pn-badge'},`界面 v${clientBuild}`)),
+      h('nav',{className:'pn-nav',role:'tablist','aria-label':'壁纸设置'},...tabs.map(([id,label])=>h('button',{key:id,role:'tab','aria-selected':tab===id||(tab==='inbox'&&id==='gallery'),onClick:()=>setTab(id)},label))),
+      version&&version!==clientBuild&&h('div',{className:'pn-status',role:'alert'},`服务版本为${version}，当前界面为${clientBuild}。请先保存当前修改，再刷新DSH界面加载匹配版本。`),
+      h('div',{className:'pn-status',role:'status'},statusText),
+      status.lockScreen?.state==='applied'&&h('small',{role:'status'},'锁屏壁纸已同步更换。'),
+      status.lockScreen?.state==='unavailable'&&h('small',{role:'status',className:'pn-style-text'},'锁屏未能同步：'+(status.lockScreen.error||'当前Windows环境暂不支持')+'。'+(status.state==='published'?'桌面壁纸已正常更换。':'此提示仅针对锁屏。')),
+      !config?h('p',null,feedback||'正在读取设置…'):h('div',{role:'tabpanel',style:{display:'grid',gap:16}},
+        ['daily','prompt','reference'].includes(tab)&&h('div',{className:'pn-modebar'},h('label',null,'旅行方式',h('select',{'aria-label':'旅行方式',disabled:busy,value:roleMode?'role':'observer',onChange:e=>{update({rolesEnabled:e.target.value==='role'});setPreview(null);setFeedback('');}},h('option',{value:'role'},'角色旅行 · 带角色去旅行'),h('option',{value:'observer'},'观察世界 · 不启用旅行角色'))),h('small',null,roleMode?'角色出镜，可选择预设或自定义角色，并写简短日记。':'只看世界与事件，不启用旅行角色、日记或留言。角色设置会保留，切回可继续用。')),
+
+        tab==='daily'&&h('div',{style:{display:'grid',gap:16}},
+          card('创作方式',check('usePromptSkills','使用内置Skill规范提示词'),h('small',null,'开启后由DSH按内置文生图／图生图规范整理你的要求，减少遗漏。关闭后保留你的原文与所选设定，直接交给生图模型。'),roleMode&&check('imageToImage','图生图模式 · 使用参考图'),h('small',{className:!current('imageToImage')?'pn-style-text':undefined},current('imageToImage')?'开启：使用指定角色参考图及图生图提示词。':'仅使用文生图：无参考图无法保持角色／场景一致性，作品归入观察世界。'),button(current('imageToImage')?'编写图生图提示词':'编写文生图提示词',()=>setTab('prompt'))),
+          card('每日更新',h('label',{className:'pn-check'},h('input',{type:'checkbox',checked:config.enabled,onChange:e=>updateMode({enabled:e.target.checked})}),'DSH运行时，每天自动制作并更换'),
+            h('div',{className:'pn-fields'},field('hour','每日开始时间（本地小时）',{type:'number',min:0,max:23}),h('label',null,'应用方式',h('select',{value:config.wallpaperMode,onChange:e=>updateMode({wallpaperMode:e.target.value,...(e.target.value==='windows'?{dailyCount:1}:{})})},h('option',{value:'windows'},'Windows 自带壁纸 · 无需小红车'),h('option',{value:'engine'},'Wallpaper Engine · 支持多图轮播')))),
+            check('syncLockScreen','同步更换锁屏壁纸'),h('small',null,'Windows锁屏同步。多图轮播时，锁屏使用第一张静态图片。'),
+            h('div',{className:'pn-fields'},h('label',null,'每日生成张数（1–20）',h('input',{type:'number',min:1,max:config.wallpaperMode==='windows'?1:20,value:config.dailyCount,disabled:config.wallpaperMode==='windows',onChange:e=>updateMode({dailyCount:Number(e.target.value)})})),config.wallpaperMode==='engine'&&field('intervalMinutes','每隔多少分钟换一张',{type:'number',min:1,max:1440})),
+            h('small',null,config.wallpaperMode==='windows'?'Windows模式每日更新一张静态图，多图轮播请选择小红车。':'逐张生成、逐张保存，全部完成后更新轮播。小红车承载循环，关闭DSH后仍可播放。生成数量会消耗所选渠道额度。'),
+            config.wallpaperMode==='engine'&&h('div',{className:'pn-actions'},button('检测小红车',()=>perform(async()=>{const result=await request({action:'detect'});updateMode({wallpaperExe:result.executable});setFeedback('小红车路径已检测并保存');})),h('small',null,config.wallpaperExe?'已记录程序位置':'保存时自动检测Steam安装位置，无需其它插件'))),
+          h('details',{className:'pn-card'},h('summary',{style:{cursor:'pointer',fontWeight:600}},'信件与世界简报 · 可选'),
+            roleMode?check('lettersEnabled','每日定时投递角色来信'):h('small',null,'观察世界模式不投递角色信件。'),
+            roleMode&&config.lettersEnabled&&field('letterTime','每日投递时间（中国时间）',{type:'time'}),
+            roleMode&&config.lettersEnabled&&h('small',null,'每次明确制作都会准备新的角色来信并存档。此开关控制定时投递与提醒，不额外生图；关闭后仍可在本机信箱阅读历史来信。'),
+            check('newsBallEnabled','显示桌面气泡世界球'),check('widgetSoundsEnabled','开启交互与来信提示音'),h('small',null,'左键展开世界见闻／角色来信，按住拖动，右键退出悬浮球或切换提示音。朗读保留，只有主动点击才出声；提示音默认关闭。来信与浮球独立，保存后生效，DSH需保持运行。'),
+            h('div',{className:'pn-actions'},button('打开本机信箱',()=>{setTab('inbox');setFeedback('');}),button('刷新投递状态',()=>perform(refreshDelivery))),
+            deliveryInfo&&(deliveryInfo.desktop?.error||deliveryInfo.error||deliveryInfo.newsError)?h('small',{className:'pn-style-text'},deliveryInfo.desktop?.error||deliveryInfo.error||deliveryInfo.newsError):h('small',null,deliveryInfo?.desktop?.ready?'桌面组件已就绪':deliveryInfo?.desktop?.running?'桌面组件启动中…':'桌面组件未开启；信件可在本机信箱阅读。')),
+          roleMode&&card('旅行日记',check('diaryEnabled','新壁纸生成后写一则短日记'),field('diaryTitle','角色对你的称呼',{placeholder:'用户'}),h('small',null,'默认称呼“用户”，可自行修改。日记两三句话、一件小事，符合角色人设。写日记调用DSH文本模型，失败不影响壁纸，旧图可在详情中补写。')),
+          card('尺寸与构图',h('label',null,'常用分辨率',h('select',{value:catalog.resolutions.some(i=>i.width===config.width&&i.height===config.height)?`${config.width}x${config.height}`:'custom',onChange:e=>{if(e.target.value!=='custom'){const[width,height]=e.target.value.split('x').map(Number);updateMode({width,height});}}},...catalog.resolutions.map(i=>h('option',{key:i.label,value:`${i.width}x${i.height}`},i.label)),h('option',{value:'custom'},'自定义（在下方填写）'))),
+            h('div',{className:'pn-fields'},field('width','宽度 px',{type:'number',min:256,max:11520}),field('height','高度 px',{type:'number',min:256,max:6480})),field('fit','画面适配',{choices:[['contain','完整保留画面 · 必要时补边'],['cover','铺满屏幕 · 必要时裁切']]}),
+            h('small',null,'默认横屏16:9。此处是最终壁纸尺寸；模型按渠道支持的最接近比例生成，再在本机适配。放大不等同于原生高分辨率生成。')),
+          card('下载与导出',field('downloadDirectory','下载目录',{placeholder:'留空使用系统下载文件夹，或填写完整路径'}),
+            h('div',{className:'pn-actions'},window.__DSH_DIRECTORY_PICKER__?.pick&&button('选择文件夹',()=>perform(async()=>{const path=await window.__DSH_DIRECTORY_PICKER__.pick();if(path){update({downloadDirectory:path});setFeedback('已选择目录，保存设置或直接导出即可生效');}else setFeedback('已取消目录选择');})),button('恢复系统下载目录',()=>{update({downloadDirectory:''});setFeedback('保存设置或下次导出后使用系统下载目录');})),
+            h('small',null,'单张图片和世界ZIP统一保存到这里。同名文件自动编号，不覆盖原文件；导出后显示完整保存路径。'))),
+        tab==='prompt'&&h('div',{style:{display:'grid',gap:16}},
+          tripComposer(),
+          roleMode&&card('旅行角色',characterPicker(false),field('characters','自定义角色／本次身份（可自由修改）')), 
+          card('画风 · 20种',h('div',{className:'pn-style-grid'},...catalog.styles.map(style=>h('button',{key:style.id,className:'pn-style','aria-pressed':config.styleId===style.id,disabled:randomizing,onMouseEnter:e=>showStylePreview(style,e),onMouseLeave:()=>setHoverStyle(null),onFocus:e=>showStylePreview(style,e),onBlur:()=>setHoverStyle(null),onClick:()=>{updateMode({styleId:style.id,style:style.prompt});setHoverStyle(null);}},style.name))),
+            field('style','画风提示词（可自由修改）',{area:true}),h('div',{className:'pn-style-text'},config.style),h('small',null,'成图详情保留生成当时的画风与完整提示词，不随后续设置变化。')),
+          card('内容与文字',field('sourceMode','内容来源',{choices:[['world','世界故事 · 按设定原创'],['bili-report','圈子见闻 · 刷B站已有日报']]}),config.sourceMode==='bili-report'&&h('div',{className:'pn-fields'},field('keywords','日报关键词'),field('days','回看天数',{type:'number',min:1,max:60})),
+            field('textDensity','画面文字',{choices:[['none','无文字 · 纯画面'],['sparse','少文字 · 小题字'],['rich','多文字 · 文字融入画面']]}),config.textDensity!=='none'&&field('textCarrier','文字载体',{choices:catalog.carriers||[]}),config.textDensity!=='none'&&config.textCarrier==='custom'&&field('carrierInstructions','自定义文字载体'),config.textDensity!=='none'&&field('textContent','希望画面上显示的文字',{area:true,placeholder:'留空让模型创作简短文案；例如：下一站江南'}),field('extraPrompt','额外要求',{area:true,placeholder:'想画什么、构图、动作、需要保留或避开的细节…'}))),
+        tab==='reference'&&h('div',{style:{display:'grid',gap:16}},
+          roleMode&&check('imageToImage','图生图模式 · 使用角色参考图'),
+          !current('imageToImage')&&h('p',{className:'pn-style-text',role:'alert'},'仅使用文生图：不读取或发送参考图。无参考图的每日壁纸无法保持角色／场景一致性，作品归入观察世界。'),
+          roleMode?card('角色参考图',characterPicker(),h('small',null,'电影／写实环境中，参考角色默认保留二次元形象。预设形象来自FishArchive，非商业许可，权利归原作者。')):h('p',null,'观察世界不使用角色参考图，不写角色日记；切回角色旅行可继续选择角色。'),
+          roleMode&&card('自定义角色参考图',h('p',{style:{overflowWrap:'anywhere'}},'您甚至可以上传自己的形象或照片，作为您的赛博分身，去旅行，帮助，或毁灭其他世界。'),h('p',null,'建议只上传有生命的角色，避免物品或世界以角色口吻写日记。留空名称归为“自定义”；名称完全相同会归入同一历史分类。三个槽位替换不删除历史旅行。'),
+            h('div',{className:'pn-character-grid pn-custom-references'},...referenceLibrary.slots.map((slot,index)=>h('section',{key:index,style:{display:'grid',gap:10,minWidth:0,padding:10,border:'1px solid var(--pn-line)',borderRadius:10,outline:current('referenceId')===slot.referenceId&&slot.referenceId?'2px solid #6288ed':undefined}},
+              h('h4',null,'自定义角色 '+(index+1)),slot.referenceId&&h('img',{src:api+'?referenceImage='+slot.referenceId,alt:slot.name,style:{width:'100%',height:160,objectFit:'contain',background:'#fff',borderRadius:8}}),
+              h('label',null,'角色名称',h('textarea',{'aria-label':'自定义角色'+(index+1)+'名称',className:'pn-reference-name',value:referenceNames[index]||'',rows:4,maxLength:40,placeholder:'不命名，则该角色壁纸存于“已到访世界”自定义分栏中。',onChange:e=>setReferenceNames(values=>values.map((v,i)=>i===index?e.target.value.replace(/[\r\n]+/g,' '):v))})),
+              h('input',{'aria-label':'上传自定义角色'+(index+1),ref:node=>{referenceInputs.current[index]=node;},hidden:true,type:'file',accept:'image/png,image/jpeg,image/webp',disabled:busy,onChange:e=>{upload(e.target.files?.[0],index);e.target.value='';}}),
+              h('button',{type:'button',disabled:busy,onClick:()=>referenceInputs.current[index]?.click()},slot.referenceId?'替换角色图':'选择角色图'),
+              h('small',{className:'pn-upload-state',role:'status'},slot.referenceId?(current('referenceId')===slot.referenceId?'已上传 · 已选':'已上传 · 未选'):'尚未上传角色图'),
+              slot.referenceId&&h('button',{type:'button',disabled:busy,'aria-pressed':current('referenceId')===slot.referenceId,onClick:()=>selectReference(slot)},current('referenceId')===slot.referenceId?'✓ 已选 '+slot.name:'选择 '+slot.name),slot.referenceId&&button('保存角色名称',()=>renameReference(index)))))),
+          current('imageToImage')&&config.imageChannel==='moss'&&h('p',{className:'pn-style-text'},'MOSS测试工作流只支持文生图，请选择支持参考图的渠道。')),
+        tab==='gallery'&&h('div',{style:{display:'grid',gap:14}},
+          h('div',{className:'pn-head'},h('h3',null,worldInfo?worldInfo.name:'已到访世界'),h('div',{className:'pn-actions'},worldInfo&&button('返回全部世界',backWorlds),button('角色来信',()=>setTab('inbox')),button('刷新',()=>perform(refresh)))),
+          h('div',{className:'pn-tags',role:'group','aria-label':'旅行分类'},...(archiveFilters.length?archiveFilters:catalog.characterFilters||[['all','全部旅行']]).map(([id,name])=>h('button',{key:id,type:'button',className:'pn-tag',disabled:busy,'aria-pressed':roleFilter===id,onClick:()=>switchRole(id)},name))),
+          !['all','none'].includes(roleFilter)&&button('删除此分类标签',hideCategory),
+          worldInfo&&button('导出这个世界的壁纸',()=>perform(()=>downloadFile('?exportWorld='+worldInfo.id+'&character='+encodeURIComponent(roleFilter),'旅行壁纸-'+worldInfo.name+'.zip'))),
+          h('small',null,worldInfo?`${worldInfo.days}个旅行日 · 共${worldInfo.count}张壁纸 · ${worldInfo.firstDay} 至 ${worldInfo.lastDay}`:`已到访${visitedWorlds.length}个世界 · 共${archiveTotal}张壁纸。点开世界查看历次旅行的全部成图。`),
+          archiveSkipped>0&&h('small',{className:'pn-style-text'},`有${archiveSkipped}条损坏或路径无效的记录未能读取；原文件保留。`),
+          !worldInfo&&worldsLoading&&h('p',{role:'status'},'正在读取旅行档案…'),
+          !worldInfo&&!worldsLoading&&!visitedWorlds.length&&h('p',null,roleFilter==='all'?'还没有旅行壁纸，先制作一次旅行。':roleFilter==='none'?'还没有观察世界的壁纸；不启用角色时生成的作品会收录在这里。':'这个参考角色还没有旅行壁纸；生成后会按参考图名称自动收录。'),
+          !worldInfo&&h('div',{className:'pn-gallery'},...visitedWorlds.map(world=>h('button',{key:world.id,className:'pn-photo',type:'button',onClick:()=>{setFeedback('');loadWorld(world);}},h('img',{src:world.cover,alt:world.name,loading:'lazy'}),h('span',{className:'pn-caption'},h('strong',{style:{overflowWrap:'anywhere'}},world.name),h('small',null,`${world.count}张壁纸 · ${world.days}个旅行日`),h('small',null,`最近到访 ${world.lastDay}`))))),
+          worldInfo&&h('div',{className:'pn-gallery'},...issues.map(issue=>h('button',{key:`${issue.issueId}-${issue.index}`,className:'pn-photo',onClick:()=>setSelected(issue)},h('img',{src:issue.image,alt:issue.title,loading:'lazy'}),h('span',{className:'pn-caption'},h('span',null,issue.title),h('small',null,`${issue.day} · ${catalog.styles.find(s=>s.id===issue.styleId)?.name||'自定义画风'} · ${issue.width?`${issue.width}×${issue.height}`:'早期图片'}${issue.count>1?` · ${issue.index+1}/${issue.count}`:''}`))))),
+          worldInfo&&archiveLoading&&h('p',{role:'status'},'正在读取这个世界的壁纸…'),
+          worldInfo&&nextOffset!==null&&h('button',{type:'button',disabled:archiveLoading,onClick:()=>loadWorld(worldInfo,nextOffset)},archiveLoading?'读取中…':`继续查看 · 已显示${issues.length}/${worldInfo.count}张`),
+          worldInfo&&h('small',null,'点开图片查看生成时的画风、完整提示词与分辨率。档案仅保存在本机，不会把全部旅行历史发送给模型。')),
+        tab==='inbox'&&h('div',{style:{display:'grid',gap:14}},
+          h('div',{className:'pn-head'},h('h3',null,'本机信箱'),h('div',{className:'pn-actions'},button('返回已到访世界',()=>{backWorlds();setTab('gallery');}),button('刷新信箱',()=>loadInbox()))),
+          h('small',null,'每次旅行的角色来信只存本机；关闭投递不会删除历史信件。'),
+          inboxLoading&&h('p',null,'正在读取信件…'),!inboxLoading&&!letters.length&&h('p',null,'还没有角色来信。制作一次角色旅行后，可在这里阅读本次来信。'),
+          ...letters.map(letter=>h('details',{key:letter.id,className:'pn-card',onToggle:e=>{if(e.currentTarget.open)readLetter(letter);}},h('summary',{style:{cursor:'pointer'}},letter.id,' · ',letter.title,letter.readAt?'':' · 未读'),
+            ...letter.items.map(item=>h('section',{key:`${item.issueId}-${item.index}`,style:{display:'grid',gap:10}},h('h4',null,item.world),h('p',{style:{whiteSpace:'pre-wrap'}},item.diary.text),h('button',{className:'pn-photo',onClick:()=>setSelected(item)},h('img',{src:item.image,alt:item.title,loading:'lazy'}),h('span',{className:'pn-caption'},'查看这次旅行的壁纸')))))),
+          inboxOffset!==null&&h('button',{disabled:inboxLoading,onClick:()=>loadInbox(inboxOffset)},'查看更早的来信'),
+          deliveryInfo?.news&&card('世界简报 · 虚构见闻',h('h4',null,deliveryInfo.news.headline),h('p',null,deliveryInfo.news.summary),h('small',null,deliveryInfo.news.world))),
+        tab==='channels'&&h('div',{style:{display:'grid',gap:16}},card('生图渠道 · 直接连接',field('imageChannel','选择渠道',{choices:[...profiles.map(i=>[i.provider,`${i.label}${i.configured?' · 已配置':''}`]),['moss','本机MOSS · 测试工作流']]}),h('small',null,'订阅在这里登录一次，插件直接连接，不依赖其它生图插件。已有DSH订阅登录会自动复用。登录可能过期，届时需重新授权。Google通道使用Antigravity授权，是否可用取决于账号资格和额度。'),
+          ['chatgpt-sub','google-sub'].includes(config.imageChannel)&&h('div',{className:'pn-actions'},h('span',null,profiles.find(i=>i.provider===config.imageChannel)?.configured?'已读取DSH登录状态':'尚未登录'),button('登录所选订阅',()=>perform(async()=>{const data=await request({action:'login',provider:config.imageChannel});setLoginUrl(data.url);window.open(data.url,'_blank','noopener,noreferrer');setFeedback('在浏览器完成授权后点“刷新登录状态”。');})),button('刷新登录状态',()=>perform(async()=>setProfiles((await request(null,'?channels')).profiles))),loginUrl&&h('a',{href:loginUrl,target:'_blank',rel:'noopener noreferrer'},'打开授权页面')),
+          !['chatgpt-sub','google-sub','moss'].includes(config.imageChannel)&&h('div',{style:{display:'grid',gap:12}},h('label',null,'API密钥（只保存在DSH凭证库）',h('input',{type:'password',value:apiKey,autoComplete:'off',onChange:e=>setApiKey(e.target.value),placeholder:'粘贴API Key；已保存的密钥不回显'})),h('label',null,'API地址',h('input',{value:apiEndpoint,onChange:e=>setApiEndpoint(e.target.value)})),h('label',null,'模型名称／火山接入点ID',h('input',{value:apiModel,onChange:e=>setApiModel(e.target.value)})),button('保存API连接',()=>perform(async()=>{const data=await request({action:'configure-channel',provider:config.imageChannel,key:apiKey,endpoint:apiEndpoint,model:apiModel});setProfiles(data.profiles);setApiKey('');setFeedback('API密钥已交给DSH保管');}))),
+          config.imageChannel==='moss'&&field('comfy','ComfyUI本机地址')),
+          card('提示词整理',h('p',null,'默认：DSH · DeepSeek-V4.1-Flash / 1017 · 推理Off'),h('small',null,'随机世界始终调用文生图Skill。每日生图是否整理提示词，由“每日壁纸”中的总开关决定。'),field('textProvider','DSH写稿渠道',{choices:[['deepseek-account','DeepSeek订阅（默认）'],...providers.filter(i=>i.id!=='deepseek-account').map(i=>[i.id,i.name])]}),field('textModel','写稿模型',{choices:[['deepseek-flash','DeepSeek-V4.1-Flash / 1017（默认）'],...models.filter(i=>i.id!=='deepseek-flash').map(i=>[i.id,i.name])]}),h('small',null,'本地模型和ComfyUI需自行安装配置。请遵守法律法规和服务规则，尊重他人权利，对生成内容的使用负责。暂不提供上传共享社区。'))),
+        booking&&card('盲盒旅行预订',h('p',null,bookingTime),h('small',null,`已锁定：${booking.character||'观察世界'} · ${booking.state==='running'?'正在出发':booking.state==='completed'?'已完成':booking.state==='error'?'执行失败':'等待出发'}`),booking.error&&h('small',{className:'pn-style-text'},booking.error),h('small',null,'到点自动创作新世界并更换壁纸；DSH需运行，恢复运行后补执行。关闭每日自动更新不会取消此预订。'),!['running','completed'].includes(booking.state)&&button('取消盲盒旅行预订',cancelBooking)),
+        tab!=='inbox'&&h('div',{style:{display:'grid',gap:12}},h('div',{className:'pn-actions'},button(dirty?'保存设置 · 有未保存修改':'保存设置',()=>submit(),true),button('查看完整提示词',()=>submit('preview'))),
+          h('div',{className:'pn-actions'},h('div',{className:'pn-travel-action'},generationButton('run','制作今日壁纸'),h('small',null,roleMode?'按已确认参数制作，每次生成新的壁纸、见闻与角色来信':'按已确认参数制作，每次生成新的壁纸与世界见闻')),h('div',{className:'pn-travel-action'},generationButton('travel-now','立即盲盒旅行'),h('small',null,roleMode?'说走就走的旅行，角色不变，世界、事件都变':'说走就走的旅行，观察方式不变，世界、事件都变')),h('div',{className:'pn-travel-action'},generationButton('book-travel','盲盒旅行预订'),h('small',null,roleMode?'预定明天的盲盒旅行，除了选择的角色不变，世界、事件都变':'预定明天的盲盒旅行，保留观察方式，世界、事件都变'))),
+          status.state==='published'&&h('small',{role:'status','aria-live':'polite'},'新壁纸已生成并更换。可以继续制作下一次旅行。')),
+        feedback&&h('p',{role:'status',style:{fontSize:13,overflowWrap:'anywhere'}},feedback),preview&&card('最终提示词',preview.prompt?promptView(preview.parts,preview.prompt):h('p',null,'没有合适选题，请选择世界故事或等待日报'))),
+      selected&&h('div',{className:'pn-modal',onClick:e=>{if(e.target===e.currentTarget)setSelected(null);}},h('section',{className:'pn-dialog',role:'dialog','aria-modal':true,'aria-label':'壁纸详情'},h('div',{className:'pn-head'},h('h3',null,selected.title),button('关闭',()=>setSelected(null))),h('img',{src:selected.image,alt:selected.title}),
+        h('div',{className:'pn-actions'},button('导出图片',()=>perform(()=>downloadFile('?download='+selected.issueId+'&index='+selected.index,selected.issueId+'-'+selected.index+'.png'))),button('设为壁纸',()=>applyIssue(selected),true),button('用作参考图',()=>useReference(selected)),selected.count>1&&config?.wallpaperMode==='engine'&&button('循环播放这一组',()=>applyIssue(selected,true))),
+        h('small',null,`${selected.day}${selected.width?` · 最终 ${selected.width}×${selected.height}`:''}${selected.originalWidth?` · 原始 ${selected.originalWidth}×${selected.originalHeight}`:''}`),h('small',null,`到访世界：${selected.world||'未记录世界'}`),(selected.rolesEnabled!==false&&!selected.characterIds?.includes('none'))&&h('div',{style:{display:'grid',gap:8}},h('h4',null,'旅行小便笺'),selected.diary?h('p',{style:{whiteSpace:'pre-wrap',lineHeight:1.85}},selected.diary.text):h('div',{style:{display:'grid',gap:8}},h('small',null,selected.diaryError||'这次旅行还没有日记。可根据当次画面设定补写，不会重新生图。'),button('写一则短日记',()=>makeDiary(selected)))),h('h4',null,'生成时的画风'),h('p',{className:'pn-style-text'},selected.style||'早期图片未独立记录，见原始提示词'),h('h4',null,'完整生成提示词 · 画风片段标红'),promptView(selected.parts,selected.prompt),selected.sourceUrl&&h('a',{href:selected.sourceUrl,target:'_blank',rel:'noopener noreferrer'},'查看来源'))));
+  }
+  return { inject:['slots'], apply(ctx){const style=document.createElement('style');style.textContent=css;document.head.appendChild(style);ctx.effect(()=>()=>style.remove(),'planet-news: settings style');const slots=ctx.get?.('slots')||ctx.slots;slots.inject('settings.section',()=>slots.register({name:'settings.section',id:'planet-news',order:33,label:'旅行壁纸'},()=>h(Panel)));} };
+} });

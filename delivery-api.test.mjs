@@ -1,0 +1,27 @@
+import{test}from'node:test';import assert from'node:assert/strict';import{mkdtemp,rm,writeFile,mkdir,readFile}from'node:fs/promises';import{join}from'node:path';import{tmpdir}from'node:os';import{createServer}from'node:http';import{apply}from'./index.js';
+test('桌面私有授权、独立关闭、配置校验与本机信箱路由',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'travel-api-')),old=process.env.DSH_HOME,cleanups=[];let route,disposed=false;const calls=[];
+ await mkdir(join(dir,'planet-news/delivery/letters'),{recursive:true});await writeFile(join(dir,'planet-news/config.json'),JSON.stringify({enabled:false,wallpaperMode:'windows',lettersEnabled:true,newsBallEnabled:false}));
+ const letter={id:'2026-11-07',title:'今日旅行来信',items:[{world:'江东',diary:{text:'主人，甜糕给你留了一半。'}}]};await writeFile(join(dir,'planet-news/delivery/letters/2026-11-07.json'),JSON.stringify(letter));
+ process.env.DSH_HOME=dir;
+ const server=createServer((req,res)=>route.handler(req,res));
+ try{apply({effect(fn){const stop=fn();if(typeof stop==='function')cleanups.push(stop)},webServer:{register(value){route=value;return()=>{}}},llm:{async *stream(){throw Error('不应生图或写稿')}}},null,()=>{throw Error('不应换壁纸')},()=>({sync:async config=>{calls.push(config)},authorized:v=>v==='test-capability',heartbeat(){},status:()=>({running:false,ready:false,error:''}),dispose(){disposed=true}}));
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const root=`http://127.0.0.1:${server.address().port}`,url=root+'/api/planet-news';
+ const post=(body,key)=>fetch(url,{method:'POST',headers:{origin:root,'content-type':'application/json',...(key?{'x-travel-widget-key':key}:{})},body:JSON.stringify(body.action?body:{config:body})});
+ assert.equal((await fetch(url+'?desktop')).status,403);assert.equal((await fetch(url+'?desktop',{headers:{'x-travel-widget-key':'test-capability'}})).status,200);
+ assert.equal((await post({action:'desktop-ball-off'})).status,403);
+ assert.equal((await post({newsBallEnabled:true})).status,200);
+ assert.equal((await post({action:'desktop-ball-off'},'test-capability')).status,200);
+ assert.equal((await post({world:'只改世界'})).status,200);
+ const stored=JSON.parse(await readFile(join(dir,'planet-news/config.json'),'utf8'));assert.equal(stored.newsBallEnabled,false);assert.equal(stored.lettersEnabled,true);assert.equal(stored.world,'只改世界');
+ assert.equal((await post({letterTime:'25:00'})).status,400);assert.equal((await post({lettersEnabled:'yes'})).status,400);
+ assert.equal((await fetch(url+'?inbox&offset=-1')).status,400);assert.equal((await fetch(url+'?inbox').then(r=>r.json())).letters.length,1);
+ assert.equal((await post({action:'letter-read',id:'../config'})).status,400);assert.equal((await post({action:'letter-read',id:'2026-11-07'})).status,200);
+ assert.ok((await fetch(url+'?inbox').then(r=>r.json())).letters[0].readAt);
+ assert.equal((await fetch(url+'?stylePreview=../config')).status,400);
+ const preview=await fetch(url+'?stylePreview=cinema');assert.equal(preview.status,200);assert.equal(preview.headers.get('content-type'),'image/webp');assert.ok((await preview.arrayBuffer()).byteLength>100);
+ assert.equal((await post({action:'desktop-sounds',enabled:true})).status,403);assert.equal((await post({action:'desktop-sounds',enabled:'yes'},'test-capability')).status,400);assert.equal((await post({action:'desktop-sounds',enabled:true},'test-capability')).status,200);
+ const withSounds=JSON.parse(await readFile(join(dir,'planet-news/config.json'),'utf8'));assert.equal(withSounds.widgetSoundsEnabled,true);assert.equal(withSounds.lettersEnabled,true);assert.equal(withSounds.newsBallEnabled,false);
+ assert.ok(calls.length);
+ }finally{for(const stop of cleanups.reverse())stop();await new Promise(r=>server.close(r));process.env.DSH_HOME=old;await rm(dir,{recursive:true,force:true});}assert.equal(disposed,true);
+});
