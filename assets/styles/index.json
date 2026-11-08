@@ -1,0 +1,145 @@
+{
+  "source": "本项目GPT订阅同题实测最终20张",
+  "items": [
+    {
+      "id": "guofeng",
+      "name": "2.5D 国风卡牌",
+      "sourceSha256": "7125ef7731110d72f3b7ac72aa7874863b7cf1b478bbaff225336b3e7841cbb7",
+      "previewSha256": "06faad3fe9066b8feeb2094fe2efe800aa99fe093cda2adffe326ecac18b0dd5",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "anime",
+      "name": "日系动画",
+      "sourceSha256": "5d80db78d43f6b140774c2e1cb36e3f038f53cac191eb8594eda6e5bb9c7e0ed",
+      "previewSha256": "3d66ef4fc42cb74fcc66697b7f9d4b36285470c8db41dce603bf8da382341e11",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "cel",
+      "name": "赛璐璐",
+      "sourceSha256": "07074ebc845c763cfa2f739e296871ba04912be0a7dc126888a2e464881da8a6",
+      "previewSha256": "0cacc5f27c39c63946a4812ea0751af5d095d55bc621b5044ef5c5d4cc4e3fec",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "ink",
+      "name": "写意水墨",
+      "sourceSha256": "e7d4469b01480c56b95a6fb689fa60d2b258e7be773cbce025b66149228001ca",
+      "previewSha256": "d7c00d782aaeab7c563e42f51d8eab5f7bf8de8d2908f66c6e2b5501b2ec99e9",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "gongbi",
+      "name": "工笔重彩",
+      "sourceSha256": "c3727c658e09f9f6f2a7f5b1fe2967b6dc2cc01b7f1cf483e2d2ef508df4e261",
+      "previewSha256": "4608eadf5989b467326d94d5bae55b4d57e99c78473ff6ea1bdcb48da581789f",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "watercolor",
+      "name": "透明水彩",
+      "sourceSha256": "024729333a52163c00ce9314a0276f1ee7f8ae0de419cc26d2a457b0c0b4b1e6",
+      "previewSha256": "d176f92ef03f7078b79369bc84cbd020353d8a3f95d5de7d6958aa8e0dbdba3e",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "oil",
+      "name": "古典油画",
+      "sourceSha256": "ca525447e28101a61b86512ea7be1b209625cecbdb936a846eea75147c75918d",
+      "previewSha256": "57ebd7dad96d10047f59670d92538bf936110446a660c0da5d1152816a4c9ed3",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "cinema",
+      "name": "电影写实",
+      "sourceSha256": "3c851200b91f352e6f4adb86766ba741869bb64e09fed857e68bd1283458cf0f",
+      "previewSha256": "bb01846a9242fc1deee130acad8eef0935cadd303b2f65de2bf8bbdb33331a22",
+      "sourceVariant": "character-2d-retained"
+    },
+    {
+      "id": "pixel",
+      "name": "精致像素",
+      "sourceSha256": "5162922692951b9d264736b351a41508703c7f3c4c3c7ad0655452b4870851ca",
+      "previewSha256": "244b31bcf97ecdb076a54a835ca6cb587192cac0f41d76919e859fcb2a8a2d69",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "lowpoly",
+      "name": "低多边形",
+      "sourceSha256": "8b76781cd77c88e5b72b93417ed9c9ff1f10f405ea4125d984c5cefbebffa567",
+      "previewSha256": "d1ff1abaab6977ca80ea6c86c72f25af5d1457755fc3231eb2cb2a74a045212a",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "clay",
+      "name": "黏土定格",
+      "sourceSha256": "f2ad52d34df691e51ff24041259a388a1a26e140486b1f3debf0173c4dad9998",
+      "previewSha256": "7bfce42c1ae2448f88ec816f8fd5f1ed8c2a5f3e20e7da6869c28f29ceab59b9",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "render",
+      "name": "精致三维",
+      "sourceSha256": "1f3c42b64f74883835456f267c1ad8ea74418a1dc20e345315d0af48315287cb",
+      "previewSha256": "7dc5c0b08a6f7b799494773d31dbeaf8f258585c8e0b615178a6ecf53cc0700d",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "paper",
+      "name": "层叠剪纸",
+      "sourceSha256": "7b1d4bd895bda1193cb8655d0dd300f33a6f6933df4202015f2b8854e1bceb83",
+      "previewSha256": "2ab4d422a868aaf0efbd8afd5ae212dba3e3e62ee306ed7ef7e922fc53b4454f",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "nouveau",
+      "name": "新艺术装饰",
+      "sourceSha256": "a48f3f4e0ab748b7496a8f583475beb41232b92df719341de7a2af6592c411bd",
+      "previewSha256": "47f9575dc0e81b9c31a0be44f01e8829f680343f803ac1a8fad426b3a7f6c8a2",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "poster",
+      "name": "复古海报",
+      "sourceSha256": "680de73c7e21eb72ab2ba6c703b4ccc89410014f38365adc42b368aae602f80b",
+      "previewSha256": "6c18aa68205425c48de01396bcf43b224ceb8f0a60e17b73bd69ad21011caad3",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "vapor",
+      "name": "蒸汽波",
+      "sourceSha256": "bb12118e5a7d73970cb3b306d9ad569b8538debdbe8e4c49f8efa5446a64d577",
+      "previewSha256": "b9981836e52cb0ad6b51ff0c2dc6b49773b5a9ef6aa515ded279b17ea2bb6814",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "comic",
+      "name": "清线漫画",
+      "sourceSha256": "c89d1f6cf24903acee6f959acc83467c2b35a6ad205dcfc6614ac394b4993e8b",
+      "previewSha256": "d8ee968e756cb7637a4614ea296d513233e8bdc05a6a835c91e64e5bd0822e59",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "fantasy",
+      "name": "史诗幻想",
+      "sourceSha256": "b9565018f6b047dbd29059252e87cb0b4bd9eef98a469f6eaebe51aab2b47441",
+      "previewSha256": "b63f71fad7534cc7b9d9e3858e6c3c296068791b614b2380f41d47135c08d9ce",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "flat",
+      "name": "几何平涂",
+      "sourceSha256": "ebf05bb3dd3c39633357ee760d640b74e3fbb675f7fae4b22bfc42796dece338",
+      "previewSha256": "460762efbb4f18f249149770b21847cfce5f704d9848340a73af4e6b5806dc76",
+      "sourceVariant": "baseline"
+    },
+    {
+      "id": "neon",
+      "name": "霓虹概念",
+      "sourceSha256": "c28371b133619cf4efc04d66fa205106dee48b14446d740e1ea3165b4a4f3f6e",
+      "previewSha256": "0917d676f9adc1ac857c2c24b4c2093ca0a14ec72d907505f892bbc73fc4320a",
+      "sourceVariant": "baseline"
+    }
+  ]
+}
