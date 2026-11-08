@@ -10,6 +10,7 @@ import sharp from 'sharp';
 import { setTimeout as wait } from 'node:timers/promises';
 import { promisify } from 'node:util';
 import manifest from './package.json' with { type: 'json' };
+import { createAboutSupport } from './about-support.js';
 import { styles, worlds, resolutions, configDefaults, normalizeConfig, promptParts, splitPrompt, randomWorld } from './catalog.js';
 import { prepareImage, publishNative, publishLockScreen } from './desktop.js';
 import { saveReference, readReference, characters } from './references.js';
@@ -456,6 +457,7 @@ export const name = 'planet-news';
 export const inject = ['webServer', 'llm', 'credentials'];
 
 export function apply(ctx, _options, publisher = publishWallpaper, desktopFactory = createDesktopWidget, lockScreenPublisher = publisher===publishWallpaper?publishLockScreen:async()=>({state:'skipped'}), imageRenderer = null) {
+  const aboutSupport = createAboutSupport();
   const requestGuard=createRequestGuard();
   const channels = createChannels(ctx);
   let randomizing = false;
@@ -597,6 +599,13 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
         if (req.method === 'GET') {
           const query = new URL(req.url, 'http://localhost').searchParams;
           if(query.has('clientSession'))return json(res,200,requestGuard.session());
+          if(query.has('about'))return json(res,200,await aboutSupport.describe());
+          if(query.has('supportCode')){
+            const bytes=await aboutSupport.image();
+            if(!bytes)return json(res,404,{error:'赞赏码未配置或已暂停公开展示'});
+            res.writeHead(200,{'content-type':'image/png','content-length':bytes.length,'x-content-type-options':'nosniff','cache-control':'no-store'});
+            return res.end(bytes);
+          }
           if(query.has('desktop')){
             if(!desktop.authorized(req.headers['x-travel-widget-key']))return json(res,403,{error:'需要桌面组件授权'});
             desktop.heartbeat();return json(res,200,await desktopState());

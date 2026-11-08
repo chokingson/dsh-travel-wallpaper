@@ -1,7 +1,7 @@
 {
   "name": "dsh-planet-news",
-  "version": "0.13.1",
-  "description": "旅行壁纸：带大肥鱼去旅行，每日自动生成与更换壁纸",
+  "version": "0.14.1",
+  "description": "旅行壁纸：带上心爱的角色或赛博分身，前往不同世界",
   "type": "module",
   "main": "./index.js",
   "exports": {
@@ -10,7 +10,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "test": "node --test test.mjs travel.test.mjs archive.test.mjs character.test.mjs mode.test.mjs delivery.test.mjs matrix.test.mjs widget.test.mjs delivery-api.test.mjs previews.test.mjs request-guard.test.mjs world-cases.test.mjs trip-composer.test.mjs trip-events.test.mjs trip-api.test.mjs trip-daily.test.mjs reference-library.test.mjs reference-archive.test.mjs reference-api.test.mjs daily-narrative.test.mjs downloads.test.mjs client-refresh.test.mjs native-halo.test.mjs travel-actions.test.mjs travel-refresh-api.test.mjs lockscreen.test.mjs config-store.test.mjs"
+    "test": "node --test test.mjs travel.test.mjs archive.test.mjs character.test.mjs mode.test.mjs delivery.test.mjs matrix.test.mjs widget.test.mjs delivery-api.test.mjs previews.test.mjs request-guard.test.mjs world-cases.test.mjs trip-composer.test.mjs trip-events.test.mjs trip-api.test.mjs trip-daily.test.mjs reference-library.test.mjs reference-archive.test.mjs reference-api.test.mjs daily-narrative.test.mjs downloads.test.mjs client-refresh.test.mjs native-halo.test.mjs travel-actions.test.mjs travel-refresh-api.test.mjs lockscreen.test.mjs config-store.test.mjs about-support.test.mjs"
   },
   "files": [
     "index.js",
@@ -76,7 +76,16 @@
     "lockscreen.ps1",
     "lockscreen.test.mjs",
     "config-store.js",
-    "config-store.test.mjs"
+    "config-store.test.mjs",
+    "about-support.js",
+    "about-support.json",
+    "about-support.test.mjs",
+    "SUPPORT.md",
+    "assets/support/",
+    "scripts/sync-about-docs.mjs",
+    "LICENSE",
+    "NOTICE",
+    "docs/"
   ],
   "dsh": {
     "bundle": {
@@ -96,5 +105,25 @@
   "devDependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
-  }
+  },
+  "author": {
+    "name": "消尽森",
+    "url": "https://github.com/chokingson"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chokingson/dsh-travel-wallpaper.git"
+  },
+  "homepage": "https://github.com/chokingson/dsh-travel-wallpaper#readme",
+  "bugs": {
+    "url": "https://github.com/chokingson/dsh-travel-wallpaper/issues"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "wallpaper",
+    "ai",
+    "character",
+    "travel"
+  ]
 }

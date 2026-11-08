@@ -1,0 +1,65 @@
+{
+  "projectName": "旅行壁纸",
+  "introduction": "旅行壁纸是一款免费的 DSH 插件。带上喜欢的角色或自己的赛博分身，前往不同世界，留下壁纸、世界见闻和角色来信；也可以不带角色，静静观察世界。",
+  "githubUrl": "https://github.com/chokingson/dsh-travel-wallpaper",
+  "feedbackUrl": "https://github.com/chokingson/dsh-travel-wallpaper/issues",
+  "supportPageUrl": "https://github.com/chokingson/dsh-travel-wallpaper/blob/main/SUPPORT.md",
+  "supportPageNote": "支持说明随本版 SUPPORT.md 发布；若链接无法打开，请通过作者微信联系。",
+  "wechat": "q871282948",
+  "independence": "本项目为独立开发的工具，与所提及的模型厂商及第三方角色创作者无隶属或代言关系。",
+  "materialNotice": "第三方角色参考图的作者、来源及使用条件单独列明，不随本项目代码许可证重新授权。自愿支持作者开发不代表获得第三方素材的商业使用授权。",
+  "support": {
+    "enabled": true,
+    "paragraphs": [
+      "旅行壁纸免费开源，所有功能均无需付费解锁。",
+      "如果它给你带来了快乐，欢迎量力而行，自愿支持作者开发。",
+      "支持不购买商品、服务或投资权益，不提供本金、利息、分红或其他投资收益回报。",
+      "所获支持将用于旅行壁纸的维护改进，以及作者原创项目‘伊甸园’的制作。",
+      "误付或其他收款问题，请联系作者核实处理。"
+    ],
+    "equalAccess": "支持与否不影响任何功能、角色、生成额度、反馈优先级和更新。",
+    "privacy": "这里只展示作者提供的微信官方赞赏码，不接入微信登录或支付服务，不读取微信信息、交易账单，不监听到账或支付回调。",
+    "savedCodeNotice": "作者可调整支持页面说明或暂停公开展示；隐藏页面或二维码不会使他人已保存的二维码失效。"
+  },
+  "materials": [
+    {
+      "name": "鲸鱼娘／DS大肥鱼",
+      "authors": "上善无形（原角色）；ZipZipPipe（DeepSeek 元素女仆二次设计）。",
+      "files": ["assets/characters/deepseek.webp", "assets/characters/deepseek-full.webp"],
+      "conditions": "DeepSeek 特定形象的二次设计遵循原角色 CC BY-NC-SA 4.0：署名、非商业性使用、相同方式共享；本项目不另授商业使用权。",
+      "verification": "已核实 ZipZipPipe《AI娘化》公开说明中的署名、不可商用要求及 DeepSeek 形象的许可声明。包内两张图片来自 FishArchive；单张绘者、加工者及其与原帖原图的逐一对应关系待核实，上善无形的原始授权声明本次未能直接读取。",
+      "links": [
+        {"label": "上善无形 · 作者主页", "url": "https://space.bilibili.com/4456176"},
+        {"label": "ZipZipPipe ·《AI娘化》", "url": "https://www.pixiv.net/artworks/148186519"},
+        {"label": "FishArchive · 来源图鉴", "url": "https://fisharchive.cc/characters"},
+        {"label": "鲸鱼娘 Q版 · 取用文件", "url": "https://fisharchive.cc/character-art/v1/view/deepseek-chibi.webp"},
+        {"label": "鲸鱼娘立绘 · 取用文件", "url": "https://fisharchive.cc/character-art/v1/view/deepseek-full.webp"},
+        {"label": "CC BY-NC-SA 4.0", "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans"}
+      ]
+    },
+    {
+      "name": "GPT 龙娘",
+      "authors": "ZipZipPipe，《AI娘化》。",
+      "files": ["assets/characters/gpt.webp"],
+      "conditions": "作者要求署名、不可商用；未确认对该角色适用其他具体 CC 许可，不将鲸鱼娘的许可扩大套用于 GPT 龙娘。",
+      "verification": "已核实《AI娘化》作者及其公开署名、不可商用说明。包内参考图来自 FishArchive；该文件与原帖单图的对应、转制加工者及完整授权链待核实。",
+      "links": [
+        {"label": "ZipZipPipe ·《AI娘化》", "url": "https://www.pixiv.net/artworks/148186519"},
+        {"label": "作者 · AI角色发布动态", "url": "https://www.bilibili.com/opus/1233069202138464289"},
+        {"label": "GPT立绘 · 取用文件", "url": "https://fisharchive.cc/character-art/v1/view/chatgpt-full.webp"}
+      ]
+    },
+    {
+      "name": "Claude 大小姐",
+      "authors": "ZipZipPipe，《AI娘化》。",
+      "files": ["assets/characters/claude.webp"],
+      "conditions": "作者要求署名、不可商用；未确认对该角色适用其他具体 CC 许可，不将鲸鱼娘的许可扩大套用于 Claude 大小姐。",
+      "verification": "已核实《AI娘化》作者及其公开署名、不可商用说明。包内参考图来自 FishArchive；该文件与原帖单图的对应、转制加工者及完整授权链待核实。",
+      "links": [
+        {"label": "ZipZipPipe ·《AI娘化》", "url": "https://www.pixiv.net/artworks/148186519"},
+        {"label": "作者 · AI角色发布动态", "url": "https://www.bilibili.com/opus/1233069202138464289"},
+        {"label": "Claude立绘 · 取用文件", "url": "https://fisharchive.cc/character-art/v1/view/claude-full.webp"}
+      ]
+    }
+  ]
+}

@@ -31,15 +31,44 @@ SOFTWARE.
 
 ## 社区角色参考图（与代码许可分开）
 
-来源：[FishArchive 角色资料库](https://fisharchive.cc/characters)，[站点说明](https://fisharchive.cc/about)。下载日期：2026-11-07。图片未改动，仅在界面缩放展示。
+第三方角色参考图的作者、来源及使用条件单独列明，不随本项目代码许可证重新授权。自愿支持作者开发不代表获得第三方素材的商业使用授权。
 
-| 本地文件 | 来源文件 | 形象 |
-| --- | --- | --- |
-| assets/characters/deepseek.webp | https://fisharchive.cc/character-art/v1/view/deepseek-chibi.webp | DeepSeek 鲸鱼娘 Q版 |
-| assets/characters/deepseek-full.webp | https://fisharchive.cc/character-art/v1/view/deepseek-full.webp | DeepSeek 鲸鱼娘 |
-| assets/characters/gpt.webp | https://fisharchive.cc/character-art/v1/view/chatgpt-full.webp | GPT 龙娘 |
-| assets/characters/claude.webp | https://fisharchive.cc/character-art/v1/view/claude-full.webp | Claude 大小姐 |
+参考图取自 [FishArchive图鉴](https://fisharchive.cc/characters)，下载记录日期2026-11-07；本项目未改动参考图文件，仅在界面缩放。下列作者原帖条件与整理站文件对应分开记录，不统一套用整理站CC页脚。
 
-来源站标注 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans)，具体作品权利归原作者。本站整理记录不等于商业使用授权。鲸鱼娘原形象署名上善无形，AI娘改编整理涉及 ZipZipPipe；GPT、Claude 形象整理署名 ZipZipPipe，可参阅 [AI娘角色图库署名](https://genderswapai.com/zh-CN/ai-gijinka/gallery)。这些是角色层面的来源线索，不声称已核实每一张参考图的单图绘者。正式商业发行前应核实授权，或替换为自有参考图。插件支持用户自行上传替换，不将这些角色画作纳入代码的 Apache 许可。
+### 鲸鱼娘／DS大肥鱼
+
+上善无形（原角色）；ZipZipPipe（DeepSeek 元素女仆二次设计）。
+
+DeepSeek 特定形象的二次设计遵循原角色 CC BY-NC-SA 4.0：署名、非商业性使用、相同方式共享；本项目不另授商业使用权。
+
+已核实 ZipZipPipe《AI娘化》公开说明中的署名、不可商用要求及 DeepSeek 形象的许可声明。包内两张图片来自 FishArchive；单张绘者、加工者及其与原帖原图的逐一对应关系待核实，上善无形的原始授权声明本次未能直接读取。
+
+包内文件：`assets/characters/deepseek.webp`、`assets/characters/deepseek-full.webp`。
+
+[上善无形 · 作者主页](https://space.bilibili.com/4456176) · [ZipZipPipe ·《AI娘化》](https://www.pixiv.net/artworks/148186519) · [FishArchive · 来源图鉴](https://fisharchive.cc/characters) · [鲸鱼娘 Q版 · 取用文件](https://fisharchive.cc/character-art/v1/view/deepseek-chibi.webp) · [鲸鱼娘立绘 · 取用文件](https://fisharchive.cc/character-art/v1/view/deepseek-full.webp) · [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans)
+
+### GPT 龙娘
+
+ZipZipPipe，《AI娘化》。
+
+作者要求署名、不可商用；未确认对该角色适用其他具体 CC 许可，不将鲸鱼娘的许可扩大套用于 GPT 龙娘。
+
+已核实《AI娘化》作者及其公开署名、不可商用说明。包内参考图来自 FishArchive；该文件与原帖单图的对应、转制加工者及完整授权链待核实。
+
+包内文件：`assets/characters/gpt.webp`。
+
+[ZipZipPipe ·《AI娘化》](https://www.pixiv.net/artworks/148186519) · [作者 · AI角色发布动态](https://www.bilibili.com/opus/1233069202138464289) · [GPT立绘 · 取用文件](https://fisharchive.cc/character-art/v1/view/chatgpt-full.webp)
+
+### Claude 大小姐
+
+ZipZipPipe，《AI娘化》。
+
+作者要求署名、不可商用；未确认对该角色适用其他具体 CC 许可，不将鲸鱼娘的许可扩大套用于 Claude 大小姐。
+
+已核实《AI娘化》作者及其公开署名、不可商用说明。包内参考图来自 FishArchive；该文件与原帖单图的对应、转制加工者及完整授权链待核实。
+
+包内文件：`assets/characters/claude.webp`。
+
+[ZipZipPipe ·《AI娘化》](https://www.pixiv.net/artworks/148186519) · [作者 · AI角色发布动态](https://www.bilibili.com/opus/1233069202138464289) · [Claude立绘 · 取用文件](https://fisharchive.cc/character-art/v1/view/claude-full.webp)
 
 订阅登录采用兼容协议，不是平台为此插件承诺的公开生图 API，资格、额度、登录有效期与协议变化由平台决定。

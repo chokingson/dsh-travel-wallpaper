@@ -4,17 +4,19 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 
 const source=await readFile(new URL('./client.js',import.meta.url),'utf8');
+const {createAboutSupport}=await import('./about-support.js');
+const publicAbout=await createAboutSupport().describe();
 const baseline={rolesEnabled:true,referenceId:'custom-1',characters:'测试角色',imageToImage:true,style:'原画风',styleId:'custom',width:1920,height:1080,dailyCount:1,hour:8,world:'原世界',tripSource:'user',tripPrompt:'已确认行程',tripConfirmedAt:'2026-11-07',tripMeta:'{}',downloadDirectory:''};
-function harness({config={},booking=null,status={},respond}={}){
+function harness({config={},booking=null,status={},respond,copy}={}){
   let factory,Panel,tree,changed=false,cursor=0,slots=[],effects=[],timers=[],calls=[],server={config:{...baseline,...config},booking,status,version:'0.12.1'},pending=[];
-  const storage=new Map();
+  const storage=new Map(),copied=[],documentEvents={};
   const react={createElement:(type,props,...children)=>({type,props:props||{},children:children.flat(Infinity).filter(i=>i!==null&&i!==undefined&&i!==false)}),
     useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return[slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;changed=true;}];},
     useRef(initial){const i=cursor++;return slots[i]??=( {current:initial} );},
     useEffect(fn,deps){const i=cursor++,prior=slots[i];if(!prior||!deps||deps.some((v,j)=>!Object.is(v,prior.deps[j]))){effects.push(()=>{prior?.cleanup?.();slots[i]={deps,cleanup:fn()};});}}
   };
-  const context={window:{__ModuleLoader__:{load:module=>{factory=module.factory;}}},document:{createElement:()=>({remove(){}}),head:{appendChild(){}},addEventListener(){},removeEventListener(){}},localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},setInterval:fn=>{timers.push(fn);return timers.length;},clearInterval(){},setTimeout(){},AbortSignal,URL,URLSearchParams,Date,console,
-    fetch:async(url,options)=>{const body=options?.body?JSON.parse(options.body):null;calls.push({url,body});let data;if(respond)data=await respond(url,body,server);if(data===undefined){if(url.includes('clientSession'))data={writeToken:'test-token'};else if(body?.action==='cancel-travel-booking'){server.booking=null;data={booking:null};}else if(body?.action==='book-travel'){server.booking={id:'b',day:'2026-11-09',hour:8,dueAt:'2026-11-09T00:00:00.000Z',state:'pending',character:'测试角色'};data={booking:server.booking};}else if(body?.config){Object.assign(server.config,body.config);data={...server};}else if(body?.action){server.status={state:'running',action:body.action,stage:'world',issueId:'new-issue'};data={status:server.status};}else if(url.includes('referenceLibrary'))data={groups:[],slots:[{referenceId:'custom-1',name:'测试角色',identityId:'c1'},{},{}]};else if(url.includes('catalog'))data={styles:[],worlds:[],resolutions:[],characters:[]};else if(url.includes('channels'))data={profiles:[]};else if(url.includes('providers'))data={providers:[]};else if(url.includes('worlds'))data={worlds:[],total:0};else if(url.includes('delivery'))data={};else if(url.includes('models'))data={models:[]};else data=JSON.parse(JSON.stringify(server));}return{ok:true,status:200,json:async()=>data};}
+  const context={window:{__ModuleLoader__:{load:module=>{factory=module.factory;}}},navigator:{clipboard:{writeText:async value=>{if(copy)await copy(value);copied.push(value);}}},document:{createElement:()=>({remove(){}}),head:{appendChild(){}},addEventListener(name,fn){documentEvents[name]=fn;},removeEventListener(name){delete documentEvents[name];}},localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},setInterval:fn=>{timers.push(fn);return timers.length;},clearInterval(){},setTimeout(){},AbortSignal,URL,URLSearchParams,Date,console,
+    fetch:async(url,options)=>{const body=options?.body?JSON.parse(options.body):null;calls.push({url,body});let data;if(respond)data=await respond(url,body,server);if(data===undefined){if(url.includes('?about'))data=publicAbout;else if(url.includes('clientSession'))data={writeToken:'test-token'};else if(body?.action==='cancel-travel-booking'){server.booking=null;data={booking:null};}else if(body?.action==='book-travel'){server.booking={id:'b',day:'2026-11-09',hour:8,dueAt:'2026-11-09T00:00:00.000Z',state:'pending',character:'测试角色'};data={booking:server.booking};}else if(body?.config){Object.assign(server.config,body.config);data={...server};}else if(body?.action){server.status={state:'running',action:body.action,stage:'world',issueId:'new-issue'};data={status:server.status};}else if(url.includes('referenceLibrary'))data={groups:[],slots:[{referenceId:'custom-1',name:'测试角色',identityId:'c1'},{},{}]};else if(url.includes('catalog'))data={styles:[],worlds:[],resolutions:[],characters:[]};else if(url.includes('channels'))data={profiles:[]};else if(url.includes('providers'))data={providers:[]};else if(url.includes('worlds'))data={worlds:[],total:0};else if(url.includes('delivery'))data={};else if(url.includes('models'))data={models:[]};else data=JSON.parse(JSON.stringify(server));}return{ok:true,status:200,json:async()=>data};}
   };
   vm.runInNewContext(source,context);
   const plugin=factory(name=>{assert.equal(name,'react');return react;});
@@ -26,7 +28,7 @@ function harness({config={},booking=null,status={},respond}={}){
   const find=(type,label)=>walk().find(node=>node.type===type&&(text(node)===label||node.props['aria-label']===label||walk().some(parent=>parent.type==='label'&&parent.children.includes(node)&&parent.children[0]===label)));
   const click=async label=>{const button=find('button',label);assert.ok(button,'button '+label);button.props.onClick();await settle();};
   const change=async(label,value)=>{const input=walk().find(node=>['input','textarea','select'].includes(node.type)&&(node.props['aria-label']===label||walk().some(parent=>parent.type==='label'&&parent.children.includes(node)&&parent.children[0]===label)));assert.ok(input,'input '+label);input.props.onChange({target:{value}});await settle();};
-  return{settle,walk,text,find,click,change,calls,server,storage,poll:async()=>{timers[0]();await settle();},get tree(){return tree;}};
+  return{settle,walk,text,find,click,change,calls,server,storage,copied,key:async key=>{documentEvents.keydown?.({key});await settle();},poll:async()=>{timers[0]();await settle();},get tree(){return tree;}};
 }
 
 test('persistent custom uploads use hidden chooser, selected status and a contained multiline name hint',async()=>{
@@ -107,4 +109,27 @@ test('lock-screen synchronization follows saved preference and can be disabled i
 test('lock-screen unavailable warning preserves explicit desktop success; applied status is separate',async()=>{
  const ui=harness({status:{state:'published',issueId:'with-lock-warning',lockScreen:{state:'unavailable',error:'系统策略不允许更换'}}});await ui.settle();const text=ui.text(ui.tree);assert.ok(text.includes('新壁纸已生成并更换'));assert.ok(text.includes('锁屏未能同步：系统策略不允许更换'));assert.ok(text.includes('桌面壁纸已正常更换'));
  ui.server.status={state:'published',issueId:'lock-applied',lockScreen:{state:'applied'}};await ui.poll();assert.ok(ui.text(ui.tree).includes('锁屏壁纸已同步更换'));assert.ok(!ui.text(ui.tree).includes('锁屏未能同步'));
+});
+
+
+test('关于分栏默认显示赞赏码且省略两条技术说明，放大可关闭，复制不提交生图',async()=>{
+ const ui=harness();await ui.settle();assert.ok(!ui.calls.some(c=>c.url.includes('?about')));
+ const nav=ui.walk().find(n=>n.type==='nav');assert.equal(ui.text(nav.children.at(-1)),'关于与支持');
+ await ui.click('关于与支持');assert.ok(ui.text(ui.tree).includes(publicAbout.introduction));assert.equal(ui.walk().filter(n=>n.type==='img').length,1);assert.ok(!ui.text(ui.tree).includes(publicAbout.support.privacy));assert.ok(!ui.text(ui.tree).includes(publicAbout.support.savedCodeNotice));assert.equal(ui.find('button','自愿支持开发'),undefined);
+ assert.equal(ui.find('button','制作今日壁纸'),undefined);assert.equal(ui.find('button','保存设置'),undefined);
+ for(const a of ui.walk().filter(n=>n.type==='a')){assert.match(a.props.href,/^https:\/\//);assert.equal(a.props.rel,'noopener noreferrer');}
+ await ui.click('复制微信号');assert.deepEqual(ui.copied,['q871282948']);assert.ok(ui.text(ui.tree).includes('微信号已复制'));
+ const image=ui.walk().find(n=>n.type==='img');assert.equal(image.props.src,'/api/planet-news?supportCode');
+ await ui.click('放大查看赞赏码');assert.ok(ui.walk().some(n=>n.props?.role==='dialog'&&n.props['aria-label']==='微信赞赏码'));
+ await ui.key('Escape');assert.ok(!ui.walk().some(n=>n.props?.role==='dialog'&&n.props['aria-label']==='微信赞赏码'));
+ await ui.click('每日壁纸');assert.equal(ui.walk().filter(n=>n.type==='img').length,0);
+ assert.ok(!ui.calls.some(c=>c.body));assert.ok(ui.calls.every(c=>c.url.startsWith('/api/planet-news')));
+});
+
+test('关于分栏缺资料、安全链接与剪贴板失败都有明确提示，不影响原设置',async()=>{
+ const unavailable={...publicAbout,wechat:'',githubUrl:'javascript:alert(1)',feedbackUrl:'',supportPageUrl:'',support:{enabled:false,qrAvailable:false,status:'赞赏码已暂停公开展示。',paragraphs:[]},materials:[]};
+ const ui=harness({respond:async url=>url.includes('?about')?unavailable:undefined});await ui.settle();await ui.click('关于与支持');
+ assert.ok(ui.text(ui.tree).includes('待配置'));assert.ok(ui.text(ui.tree).includes('暂停公开展示'));assert.equal(ui.walk().filter(n=>n.type==='a').length,0);assert.equal(ui.find('button','自愿支持开发'),undefined);
+ await ui.click('每日壁纸');assert.ok(ui.find('button','制作今日壁纸'));assert.equal(ui.server.config.world,'原世界');
+ const denied=harness({copy:async()=>{throw Error('clipboard denied');}});await denied.settle();await denied.click('关于与支持');await denied.click('复制微信号');assert.ok(denied.text(denied.tree).includes('手动复制'));
 });
