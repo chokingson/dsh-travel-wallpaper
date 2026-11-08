@@ -30,3 +30,9 @@ npm pack --ignore-scripts
 源码许可证为 Apache-2.0，保留 LICENSE、NOTICE 和 THIRD_PARTY_NOTICES。已有 vendor 原许可原样保留。运行依赖保留其自身许可。
 
 `.tgz` 是朋友试装和正式下载使用的包；源码 ZIP 用于审阅和更新仓库。市场申请、正式 Release 和公开仓库，等完整测试与最后确认后再进行。文档包和源 ZIP 的 SHA-256 应随交付清单记录，避免把旧版本附件当成最新源码。
+
+## 高级安装与历史标识
+
+用户可见的产品名称为“旅行壁纸”，下载附件使用 `旅行壁纸-版本号.tgz`。当前内部包名仍为 `dsh-planet-news`，以保持已有安装识别一致；这是开发维护信息，不要求普通用户核对。更改内部标识与升级迁移应另行验证，不能只替换文案。
+
+DSH 接受本地 tgz 的绝对路径；终端方式为 `dsh plugin --profile <当前配置名> add "<安装包完整绝对路径>"`。配置名以用户实际环境为准，不在普通安装步骤中预设。依据：[DSH 安装 spec](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/boot/plugin-manager/src/install-spec.ts)、[官方兼容性指南](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/upgrade-guide/v0.2.1-alpha.3/plugin-engines-dsh/guide.zh.md)。
