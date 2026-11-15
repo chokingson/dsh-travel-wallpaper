@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { splitPrompt } from './catalog.js';
 import { imageCharacters, characterFilters } from './character-tags.js';
+import {effectiveConfig} from './mode-config.js';
+import {worldCases,worldAliases} from './world-cases.js';
 
 const issueFile = /^\d{4}-\d\d-\d\d(?:-[a-f\d]+)?\.json$/;
 const imageFile = /^\d{4}-\d\d-\d\d(?:-[a-f\d]+){0,2}\.(?:png|jpg|webp)$/;
@@ -39,7 +41,7 @@ export async function readWorldArchive(directory,{character='all',referenceLibra
     }
   }
   records.sort((a,b)=>timeOf(b)-timeOf(a)||b.issueId.localeCompare(a.issueId));
-  const images=[],groups=new Map();
+  const images=[],groups=new Map(),presetVisits=[],visitKeys=new Set(),presetIds=new Set(worldCases.map(row=>row.id));
   for (const record of records) {
     const pictures=Array.isArray(record.images)?record.images:[{imageFile:record.imageFile||`${record.day}.png`,story:record.story,prompt:record.prompt,style:record.settings?.style,styleId:record.settings?.styleId}];
     for (const [index,picture] of pictures.entries()) {
@@ -48,19 +50,24 @@ export async function readWorldArchive(directory,{character='all',referenceLibra
       const file=picture.imageFile || `${record.day}.png`;
       if (typeof file!=='string'||!imageFile.test(file)) {skipped++;continue;}
       if (!present.has(file)) continue;
+      const recipe=effectiveConfig(record.recipe||{}),caseId=worldAliases[recipe.tripCaseId]||recipe.tripCaseId;
+      if(record.state==='published'&&recipe.tripSource==='builtin'&&presetIds.has(caseId)&&!visitKeys.has(record.issueId+':'+caseId)){
+        visitKeys.add(record.issueId+':'+caseId);presetVisits.push({issueId:record.issueId,caseId,at:timeOf(record)});
+      }
       const referenceId=picture.referenceId??(record.recipe?.imageToImage?record.recipe.referenceId:'');
       const identity=referenceLibrary?await referenceLibrary.resolve(picture.rolesEnabled===false?'':referenceId):null;
-      const characterIds=identity?[identity.id]:imageCharacters(picture,record);
+      let characterIds=identity?[identity.id]:imageCharacters(picture,record);
+      if(Array.isArray(picture.party)&&picture.rolesEnabled!==false){const depicted=picture.party.filter(actor=>!Array.isArray(picture.depictedMemberIds)||picture.depictedMemberIds.includes(actor.id));characterIds=[...new Set(await Promise.all(depicted.map(async actor=>referenceLibrary?(actor.referenceId?(await referenceLibrary.resolve(actor.referenceId)).id:'custom'):actor.id.startsWith('builtin-')?actor.id.slice(8):'custom')))];}
       if(identity?.id==='custom'&&!library.hiddenIds?.includes('custom')&&!filters.some(([id])=>id==='custom'))filters.splice(filters.length-1,0,['custom','自定义']);
       if(character!=='all'&&!characterIds.includes(character))continue;
       const name=nameOf([picture.world,record.recipe?.world,record.settings?.world,record.world]);
       const id=name?createHash('sha256').update(name).digest('hex').slice(0,24):'unrecorded';
       const prompt=typeof picture.prompt==='string'?picture.prompt:'';
       const image={worldId:id,world:name||'未记录世界',issueId:record.issueId,index,count:pictures.length,day:record.day,
-        title:picture.story?.title||record.day,prompt,parts:picture.promptParts||splitPrompt(prompt,picture.style||''),
+        title:picture.story?.title||record.day,storyOutcome:picture.storyOutcome?.status==='committed'?picture.storyOutcome:null,prompt,parts:picture.promptParts||splitPrompt(prompt,picture.style||''),
         style:picture.style||'',styleId:picture.styleId||'custom',width:picture.width,height:picture.height,
         originalWidth:picture.originalWidth,originalHeight:picture.originalHeight,contextKey:picture.contextKey,referenceId:picture.referenceId,referenceName:identity?.name,identityId:identity?.id,
-        character:picture.story?.character||'',characterIds,rolesEnabled:!characterIds.includes('none'),diary:!characterIds.includes('none')&&picture.diary&&typeof picture.diary.text==='string'?{text:picture.diary.text,addressee:typeof picture.diary.addressee==='string'?picture.diary.addressee:'',createdAt:picture.diary.createdAt}:null,
+        party:picture.party,participantIds:picture.participantIds,depictedMemberIds:picture.depictedMemberIds,character:picture.diary?.author?.name||picture.party?.[0]?.name||picture.story?.character||'',characterIds,rolesEnabled:!characterIds.includes('none'),diary:!characterIds.includes('none')&&picture.diary&&typeof picture.diary.text==='string'?{text:picture.diary.text,addressee:typeof picture.diary.addressee==='string'?picture.diary.addressee:'',createdAt:picture.diary.createdAt}:null,
         diaryIssueId:!characterIds.includes('none')&&typeof picture.diaryIssueId==='string'?picture.diaryIssueId:'',diaryDay:!characterIds.includes('none')&&typeof picture.diaryDay==='string'?picture.diaryDay:'',diaryError:typeof picture.diaryError==='string'?picture.diaryError:'',era:picture.era||record.recipe?.era||record.settings?.era||'',
         sourceUrl:/^https?:\/\//i.test(picture.story?.url||'')?picture.story.url:'',image:`/api/planet-news?image=${encodeURIComponent(record.issueId)}&index=${index}`};
       images.push(image);
@@ -70,5 +77,5 @@ export async function readWorldArchive(directory,{character='all',referenceLibra
       if (record.day>group.lastDay) group.lastDay=record.day;
     }
   }
-  return {worlds:[...groups.values()].map(({dates,...group})=>({...group,days:dates.size})),images,total:images.length,skipped,filters};
+  return {worlds:[...groups.values()].map(({dates,...group})=>({...group,days:dates.size})),images,total:images.length,skipped,filters,presetVisits};
 }

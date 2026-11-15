@@ -1,5 +1,5 @@
 import{test}from'node:test';import assert from'node:assert/strict';import{styles,worlds,normalizeConfig,splitPrompt}from'./catalog.js';import{characters}from'./references.js';import{compilePrompt,effectiveConfig}from'./prompt-skills.js';
-test('20画风×8世界×5角色方式×4类tag×2生图方式：6400组提示词与隔离回归',async()=>{
+test('20画风×50世界×5角色方式×4类tag×2生图方式：40000组提示词与隔离回归',async()=>{
  const roles=[...characters.map(c=>({character:c.character,enabled:true})),{character:'自定义旅人阿青（青衣、木簪）',enabled:true},{character:'隐藏的DS大肥鱼',enabled:false}];
  const tags=['晨雾，纸鸢，渡船','cyberpunk, rain, neon','<tag>&"自由编辑"',''];let cases=0;
  for(const style of styles)for(const[era,world]of worlds)for(const role of roles)for(const tag of tags)for(const imageToImage of [false,true]){
@@ -11,5 +11,5 @@ test('20画风×8世界×5角色方式×4类tag×2生图方式：6400组提示�
   if(role.enabled)assert.ok(prompt.includes(role.character));else{assert.doesNotMatch(prompt,/隐藏的DS大肥鱼|保留旅行角色的形象/);assert.equal(actual.diaryEnabled,false);assert.match(prompt,/观察世界/);}
   if(imageToImage&&role.enabled)assert.ok(prompt.includes('【参考图需求】'));else assert.equal(actual.referenceId,'');if(!role.enabled)assert.doesNotMatch(prompt,/【场景参考】/);cases++;
  }
- assert.equal(cases,6400);
+ assert.equal(cases,40000);
 });

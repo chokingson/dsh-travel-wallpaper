@@ -31,7 +31,7 @@ test('随机世界一次替换全部主题字段，额外要求清空且遵循Of
   const { generateWorld } = await import('./prompt-skills.js');
   const generated = { topic: '云海邮差', world: '未来浮岛城', era: '未来', tags: '飞艇，邮局', characters: 'DeepSeek鲸鱼娘（旅行邮差）',
     rules: '居民用漂浮信件交流', style: '透明水彩', textDensity: 'rich', textCarrier: 'hologram', textContent: '下一站云海', textPrompt: '鲸鱼娘骑飞艇去浮岛送信' };
-  const llm = { async *stream(request) { assert.equal(request.reasoningEffort, 'off'); assert.match(request.messages[0].content[0].text, /travel-text-to-image/); yield { type: 'text-delta', text: JSON.stringify(generated) }; yield { type: 'finish', reason: 'stop' }; } };
+  const llm = { async *stream(request) { assert.equal(request.reasoningEffort, 'off'); assert.match(request.messages[0].content[0].text, /travel-world-generation/); yield { type: 'text-delta', text: JSON.stringify(generated) }; yield { type: 'finish', reason: 'stop' }; } };
   const result = await generateWorld(llm, { extraPrompt: '旧要求' }, '');
   for (const key of Object.keys(generated)) assert.equal(result[key], generated[key]);
   assert.equal(result.extraPrompt, '');
@@ -127,7 +127,7 @@ test('上游错误回显令牌时，订阅错误出口必须脱敏', async () =>
 test('写实环境与二次元参考角色分开处理：Skill和直接提示词均保留角色媒介',async()=>{
  const {compilePrompt}=await import('./prompt-skills.js');const base={rolesEnabled:true,imageToImage:true,referenceId:'builtin-deepseek',referenceInstructions:'大肥鱼去真实江东市集旅行',characters:'DS大肥鱼',styleId:'cinema',style:'电影感写实摄影',usePromptSkills:false,promptMode:'direct'};
  const prompt=await compilePrompt(null,{},base,[]);assert.match(prompt,/【角色画风】/);assert.match(prompt,/角色保留参考图的二次元/);assert.match(prompt,/仅用于背景/);assert.match(prompt,/用户明确要求改变角色画风/);
- let task;await compilePrompt({async *stream(request){task=request.messages[0].content[0].text;yield{type:'text-delta',text:'旅行场景'};}},{},{...base,usePromptSkills:true,promptMode:'llm'},[]);assert.match(task,/角色保留参考图的二次元/);
+ let task;await compilePrompt({async *stream(request){task=request.messages[0].content[0].text;yield{type:'text-delta',text:'旅行场景'};}},{},{...base,usePromptSkills:true,promptMode:'llm'},[]);assert.match(task,/角色保留其二次元/);
  const off=await compilePrompt(null,{}, {...base,imageToImage:false},[]);assert.doesNotMatch(off,/【角色画风】|参考图的二次元/);
  const observer=await compilePrompt(null,{}, {...base,rolesEnabled:false,observerImageToImage:true,observerReferenceId:'a'.repeat(32),observerReferenceInstructions:'场景参考'},[]);assert.doesNotMatch(observer,/【角色画风】|角色保留参考图的二次元/);
 });

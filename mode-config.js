@@ -1,12 +1,14 @@
+import {partyDescription} from './party.js';
 export const observerFields={interactionPrompt:'observerInteractionPrompt',interactionId:'observerInteractionId',world:'observerWorld',era:'observerEra',tripPrompt:'observerTripPrompt',tripSource:'observerTripSource',tripCaseId:'observerTripCaseId',tripTimeId:'observerTripTimeId',tripGenerationId:'observerTripGenerationId',tripMeta:'observerTripMeta',tripConfirmedAt:'observerTripConfirmedAt',tripStartDay:'observerTripStartDay',imageToImage:'observerImageToImage',referenceId:'observerReferenceId',referenceInstructions:'observerReferenceInstructions',textPrompt:'observerTextPrompt',topic:'observerTopic',tags:'observerTags',rules:'observerRules',extraPrompt:'observerExtraPrompt',textContent:'observerTextContent'};
 export function effectiveConfig(config) {
   const result={...config};
+  if(Array.isArray(config.party)&&config.rolesEnabled!==false){result.party=config.party.map(actor=>({...actor}));result.characters=partyDescription(result.party);result.referenceId=result.party.find(actor=>actor.referenceId)?.referenceId||'';}
   if(config.rolesEnabled===false) {
     for(const[key,field]of Object.entries(observerFields)){
       if((key==='world'||key==='era')&&!config[field]&&!config.observerTripSource)continue;
       result[key]=config[field]??(key==='imageToImage'?false:'');
     }
-    Object.assign(result,{characters:'',diaryEnabled:false,diaryTitle:'',imageToImage:false,referenceId:'',referenceInstructions:''});
+    Object.assign(result,{party:[],characters:'',diaryEnabled:false,diaryTitle:'',imageToImage:false,referenceId:'',referenceInstructions:''});
   }
   if(result.tripPrompt&&result.tripMeta){try{const meta=JSON.parse(result.tripMeta);if(typeof meta.world==='string'&&meta.world)result.world=meta.world;result.era=typeof meta.time==='string'?meta.time:'';}catch{}}
   if(!result.imageToImage)Object.assign(result,{referenceId:'',referenceInstructions:''});

@@ -52,7 +52,7 @@ function Send-Action($body) {
    <StackPanel>
     <DockPanel Margin="0,0,0,12"><Button x:Name="Collapse" Content="×" DockPanel.Dock="Right" Padding="8,1" ToolTip="收起面板"/><TextBlock Text="旅行见闻" FontSize="18" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/></DockPanel>
     <TextBlock x:Name="CurrentWorld" Text="当前世界" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="42" Foreground="#C9E2EC" FontSize="12" Margin="0,0,0,10"/>
-    <WrapPanel Margin="0,0,0,10"><Button x:Name="NewsTab" Content="世界见闻" Padding="8,6" Margin="0,0,4,5"/><Button x:Name="LetterTab" Content="角色来信" Padding="8,6" Margin="0,0,4,5"/><Button x:Name="Interfere" Content="干涉世界" Padding="8,6" Margin="0,0,4,5"/><Button x:Name="Reply" Content="回信" Padding="8,6" Margin="0,0,0,5"/></WrapPanel>
+    <WrapPanel Margin="0,0,0,10"><Button x:Name="NewsTab" Content="世界见闻" Padding="8,6" Margin="0,0,4,5"/><Button x:Name="LetterTab" Content="角色来信" Padding="8,6" Margin="0,0,4,5"/><Button x:Name="TodayTab" Content="今日剧情" Padding="8,6" Margin="0,0,4,5"/><Button x:Name="TomorrowTab" Content="次日剧情" Padding="8,6" Margin="0,0,0,5"/></WrapPanel>
     <TextBlock x:Name="InteractionStatus" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="42" Foreground="#C9DFEF" FontSize="12" Margin="0,0,0,8"/>
    </StackPanel>
    <ScrollViewer x:Name="PanelScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel>
@@ -60,11 +60,12 @@ function Send-Action($body) {
      <TextBlock x:Name="NewsDate" Text="平行世界虚构见闻" Foreground="#AABFD6" FontSize="11" Margin="0,0,0,12"/>
      <TextBlock x:Name="Headline" Text="等待本次世界简报…" FontSize="16" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap"/>
      <ScrollViewer MaxHeight="210" VerticalScrollBarVisibility="Auto" Margin="0,10,0,12"><TextBlock x:Name="Summary" Foreground="#E0EAF5" FontSize="14" TextWrapping="Wrap" LineHeight="23"/></ScrollViewer>
-     <Button x:Name="Speak" Content="朗读 / 停止" HorizontalAlignment="Left"/>
+     <Grid Margin="0,0,0,8" ClipToBounds="True"><TextBox x:Name="WorldActionText" Height="36" Padding="8" MaxLength="4000"/><TextBlock x:Name="WorldActionHint" Text="你想立刻对世界做什么？" Foreground="#74808D" Margin="10,9" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"/></Grid><Button x:Name="Interfere" Content="干涉世界" HorizontalAlignment="Left" Padding="12,6" Margin="0,0,0,8"/><Button x:Name="Speak" Content="朗读 / 停止" HorizontalAlignment="Left"/>
     </StackPanel>
     <StackPanel x:Name="LetterView" Visibility="Collapsed">
      <TextBlock x:Name="LetterDate" Text="角色的旅行小便笺" Foreground="#AABFD6" FontSize="11" Margin="0,0,0,12"/>
      <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto"><TextBlock x:Name="LetterText" Foreground="#E0EAF5" FontSize="14" TextWrapping="Wrap" LineHeight="24" Text="还没有来信。开启每日投递后，角色的短日记会存到本机信箱。"/></ScrollViewer>
+     <Grid Margin="0,12,0,8" ClipToBounds="True"><TextBox x:Name="RoleActionText" Height="36" Padding="8" MaxLength="4000"/><TextBlock x:Name="RoleActionHint" Text="你想立刻让你的角色做什么？" Foreground="#74808D" Margin="10,9" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"/></Grid><Button x:Name="Reply" Content="回信" HorizontalAlignment="Left" Padding="12,6"/>
     </StackPanel>
    </StackPanel></ScrollViewer>
     <TextBlock Grid.Row="2" Text="左键展开 · 按住拖动 · 右键菜单" TextWrapping="Wrap" Foreground="#AABFD6" FontSize="11" Margin="0,10,0,0"/>
@@ -177,13 +178,13 @@ function New-InteractionEditor($mode) {
     $dialog=[Windows.Markup.XamlReader]::Load((New-Object Xml.XmlNodeReader $editorMarkup))
     $sourceIssueId=$script:state.news.source.issueId
     if (-not $sourceIssueId -and $script:state.latestLetter) { $sourceIssueId=$script:state.latestLetter.sourceIssueId }
-    $dialog.Tag=@{Mode=$mode;SourceIssueId=$sourceIssueId;ContextKey=[string]$script:state.contextKey}
+    $dialog.Tag=@{Mode=$mode;SourceIssueId=$sourceIssueId;ContextKey=[string]$script:state.contextKey;RequestId=[guid]::NewGuid().ToString('N')}
     if ($mode -eq 'reply') {
         $dialog.Title='旅行壁纸 · 回信'; $dialog.FindName('EditorTitle').Text='给角色回信'
-        $dialog.FindName('EditorHint').Text='让您的角色给您带特产，或扶老奶奶过马路或毁灭世界，重启文明。'
+        $dialog.FindName('EditorHint').Text='你想立刻让你的角色做什么？'
     } else {
         $dialog.Title='旅行壁纸 · 干涉世界'; $dialog.FindName('EditorTitle').Text='干涉当前世界'
-        $dialog.FindName('EditorHint').Text='您可以尽情发挥，比如做一个善良的上帝：选择帮奴隶们推翻暴君，或者邪恶的撒旦：让共富的高科技乌托邦世界倒退回奴隶制。'
+        $dialog.FindName('EditorHint').Text='你想立刻对世界做什么？'
     }
     $dialog.FindName('EditorText').Tag=$dialog
     $dialog.FindName('EditorHintScroll').Tag=$dialog
@@ -204,7 +205,7 @@ function Submit-Interaction($dialog) {
     if ($dialog.Tag.ContextKey -ne [string]$script:state.contextKey) { $status.Text='世界或角色已切换，请关闭后重新输入。'; return }
     $button.IsEnabled=$false; $status.Text='正在提交…'
     try {
-        $body=@{action='desktop-interaction';mode=$dialog.Tag.Mode;text=$text;contextKey=$dialog.Tag.ContextKey}
+        $body=@{action='desktop-interaction';mode=$dialog.Tag.Mode;text=$text;contextKey=$dialog.Tag.ContextKey;requestId=$dialog.Tag.RequestId}
         if ($dialog.Tag.SourceIssueId) { $body.sourceIssueId=$dialog.Tag.SourceIssueId }
         Send-Action $body
         $script:submissionAt=Get-Date; $window.FindName('InteractionStatus').Text='生成中，稍等'
@@ -222,6 +223,8 @@ function Open-Interaction($mode) {
     if ($mode -eq 'reply' -and -not $script:state.allowLetters) { return }
     if ($script:editor) { $script:editor.Activate() | Out-Null; return }
     Stop-Speech; Play-Effect 'click'; $script:editor=New-InteractionEditor $mode
+    $inline=if ($mode -eq 'reply') { $window.FindName('RoleActionText') } else { $window.FindName('WorldActionText') }
+    if ($inline.Text.Trim()) { $script:editor.FindName('EditorText').Text=$inline.Text; Submit-Interaction $script:editor; $script:editor=$null; return }
     if ($window.IsVisible) { $script:editor.Owner=$window }
     try { [void]$script:editor.ShowDialog() } finally { $script:editor=$null }
 }
@@ -245,9 +248,185 @@ $orb.Add_MouseLeftButtonDown({
     $clicked=([Math]::Abs($window.Left-$left) -lt 4 -and [Math]::Abs($window.Top-$top) -lt 4); Clamp-Window
     if ($clicked) { Play-Effect 'click'; Set-Expanded (-not $script:expanded) }
 })
+function Read-StoryDrafts {
+    if ($null -ne $script:storyDrafts) { return }
+    $script:storyDrafts=@{}
+    if (-not $env:TRAVEL_WIDGET_DATA_DIR) { return }
+    try {
+        $saved=[IO.File]::ReadAllText((Join-Path $env:TRAVEL_WIDGET_DATA_DIR 'story-drafts.json'),[Text.Encoding]::UTF8) | ConvertFrom-Json
+        foreach ($entry in $saved.PSObject.Properties) { $script:storyDrafts[$entry.Name]=$entry.Value }
+    } catch { }
+}
+function Save-StoryDraft($dialog) {
+    Read-StoryDrafts
+    $tag=$dialog.Tag
+    if (-not $tag.Context.scopeKey) { return }
+    $key=[string]$tag.Context.scopeKey+':'+$tag.Kind
+    $script:storyDrafts[$key]=@{Version=$tag.Context.version;Text=$dialog.FindName('StoryCustom').Text;Source=$tag.Source;Choice=$tag.Choice;RequestId=$tag.RequestId;TaskId=$tag.TaskId;Pending=$tag.Pending}
+    if ($env:TRAVEL_WIDGET_DATA_DIR) {
+        try {
+            [IO.Directory]::CreateDirectory($env:TRAVEL_WIDGET_DATA_DIR) | Out-Null
+            $path=Join-Path $env:TRAVEL_WIDGET_DATA_DIR 'story-drafts.json'; $temp=$path+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+            [IO.File]::WriteAllText($temp,($script:storyDrafts | ConvertTo-Json -Depth 10),[Text.UTF8Encoding]::new($false))
+            if ([IO.File]::Exists($path)) { [IO.File]::Replace($temp,$path,$null) } else { [IO.File]::Move($temp,$path) }
+        } catch { $dialog.FindName('StoryStatus').Text='草稿暂存于本次窗口，磁盘保存暂未成功。' }
+    }
+}
+function Update-StorySelection($dialog) {
+    $tag=$dialog.Tag; $locked=($tag.Pending -or $tag.Loading -or $tag.Invalid)
+    foreach($id in @('A','B','C')) {
+        $button=$dialog.FindName('Choice'+$id)
+        $button.IsEnabled=(-not $locked -and $tag.Source -notin @('custom','random') -and [bool]$tag.Options)
+        $button.Background=if($tag.Source -eq 'option' -and $tag.Choice -eq $id){'#BAD0FF'}else{'#F4F7FA'}
+        $button.FontWeight=if($tag.Source -eq 'option' -and $tag.Choice -eq $id){'Bold'}else{'Normal'}
+    }
+    $dialog.FindName('StoryCustom').IsEnabled=(-not $locked -and $tag.Source -notin @('option','random'))
+    $dialog.FindName('StoryHint').Visibility=if($dialog.FindName('StoryCustom').Text.Length){'Collapsed'}else{'Visible'}
+    $valid=($tag.Source -eq 'option' -and $tag.Choice) -or ($tag.Source -eq 'custom' -and $dialog.FindName('StoryCustom').Text.Trim()) -or $tag.Source -eq 'random'
+    $dialog.FindName('StoryContinue').IsEnabled=(-not $locked -and [bool]$tag.Context.valid -and [bool]$valid -and -not $tag.TaskId)
+    $dialog.FindName('StoryContinue').Content=if($tag.Pending){'生成中，稍等'}else{'继续'}
+    $dialog.FindName('StoryReset').IsEnabled=(-not $tag.Pending -and -not $tag.Loading)
+    $dialog.FindName('StoryRandom').IsEnabled=(-not $tag.Pending -and -not $tag.Loading)
+}
+function Set-StoryOptions($dialog,$data) {
+    if ($dialog.Tag.Context.version -ne $data.version -or $dialog.Tag.Context.scopeKey -ne $data.scopeKey) { $dialog.FindName('StoryStatus').Text='当前剧情已更新，请重新选择。自定义草稿已保留。'; return }
+    $dialog.Tag.Options=$data; $dialog.Tag.Loading=$false
+    foreach($choice in $data.choices) { $dialog.FindName('Choice'+$choice.id).Content.Text=$choice.id+'．'+$choice.text }
+    Update-StorySelection $dialog
+}
+function New-StoryEditor($kind) {
+    [xml]$storyMarkup=@'
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="旅行壁纸 · 剧情" Width="520" Height="590" MinWidth="280" ShowInTaskbar="False" Topmost="True" Background="#F4F7FA">
+ <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="18">
+  <TextBlock x:Name="StoryTitle" FontSize="18" FontWeight="Bold" Margin="0,0,0,8"/>
+  <TextBlock x:Name="StoryWorld" TextWrapping="Wrap" Foreground="#526273" Margin="0,0,0,10"/>
+  <TextBlock x:Name="StoryPlan" TextWrapping="Wrap" Foreground="#365C44" Margin="0,0,0,12"/>
+  <Button x:Name="ChoiceA" HorizontalContentAlignment="Stretch" Padding="12" Margin="0,0,0,8"><TextBlock TextWrapping="Wrap" Text="A．正在准备剧情选项…"/></Button>
+  <Button x:Name="ChoiceB" HorizontalContentAlignment="Stretch" Padding="12" Margin="0,0,0,8"><TextBlock TextWrapping="Wrap" Text="B．正在准备剧情选项…"/></Button>
+  <Button x:Name="ChoiceC" HorizontalContentAlignment="Stretch" Padding="12" Margin="0,0,0,12"><TextBlock TextWrapping="Wrap" Text="C．正在准备剧情选项…"/></Button>
+  <Grid ClipToBounds="True" Margin="0,0,0,12"><TextBox x:Name="StoryCustom" AcceptsReturn="False" Height="36" Padding="8" MaxLength="4000" HorizontalScrollBarVisibility="Auto"/><TextBlock x:Name="StoryHint" Foreground="#74808D" Margin="10,8" TextTrimming="CharacterEllipsis" IsHitTestVisible="False"/></Grid>
+  <WrapPanel><Button x:Name="StoryReset" Content="重选" Padding="16,7" Margin="0,0,8,8"/><Button x:Name="StoryRandom" Content="恢复随机" Padding="16,7" Margin="0,0,8,8"/><Button x:Name="StoryContinue" Content="继续" Padding="20,7" Margin="0,0,8,8"/><Button x:Name="StoryReload" Content="重新准备选项" Padding="12,7" Margin="0,0,0,8"/></WrapPanel>
+  <TextBlock x:Name="StoryExplanation" TextWrapping="Wrap" Foreground="#526273" Margin="0,4,0,10"/>
+  <TextBlock x:Name="StoryStatus" TextWrapping="Wrap" Foreground="#365376" Margin="0,0,0,10"/>
+ </StackPanel></ScrollViewer>
+</Window>
+'@
+    Read-StoryDrafts
+    $dialog=[Windows.Markup.XamlReader]::Load((New-Object Xml.XmlNodeReader $storyMarkup))
+    $context=$script:state.storyContext
+    if (-not $context) { $context=@{scopeKey='';version='';valid=$false;world=$script:state.currentWorld} }
+    $dialog.Tag=@{Kind=$kind;Context=$context;Source='';Choice='';RequestId='';TaskId='';Pending=$false;Loading=$false;Invalid=$false;Options=$null;Suppress=$false;Http=$null;Timer=$null}
+    $tomorrow=$kind -eq 'tomorrow'
+    $dialog.FindName('StoryTitle').Text=if($tomorrow){'次日剧情'}else{'今日剧情'}
+    $dialog.FindName('StoryWorld').Text=[string]$context.world
+    $dialog.FindName('StoryHint').Text=if($tomorrow){'你说什么就明天会发生什么。'}else{'你想说什么就立即会发生什么。'}
+    $dialog.FindName('StoryHint').ToolTip=$dialog.FindName('StoryHint').Text
+    $dialog.FindName('StoryExplanation').Text=if($tomorrow){'点击继续后保存次日安排，到时自动执行。'}else{'点击继续后，根据当前选择制作新的壁纸。'}
+    $dialog.FindName('StoryRandom').Visibility=if($tomorrow){'Visible'}else{'Collapsed'}
+    foreach($id in @('A','B','C')) {
+        $button=$dialog.FindName('Choice'+$id); $button.Tag=@{Dialog=$dialog;Id=$id}
+        $button.Add_Click({ $d=$this.Tag.Dialog; $d.Tag.Source='option'; $d.Tag.Choice=$this.Tag.Id; $d.Tag.RequestId=''; $d.Tag.TaskId=''; Update-StorySelection $d; Save-StoryDraft $d })
+    }
+    $dialog.FindName('StoryCustom').Tag=$dialog
+    $dialog.FindName('StoryCustom').Add_TextChanged({ $d=$this.Tag; if($d.Tag.Suppress){return}; if($this.Text.Length){$d.Tag.Source='custom'}; $d.Tag.Choice=''; $d.Tag.RequestId=''; $d.Tag.TaskId=''; Update-StorySelection $d; Save-StoryDraft $d })
+    $dialog.FindName('StoryReset').Tag=$dialog
+    $dialog.FindName('StoryReset').Add_Click({ $d=$this.Tag; $d.Tag.Source=''; $d.Tag.Choice=''; $d.Tag.RequestId=''; $d.Tag.TaskId=''; Update-StorySelection $d; Save-StoryDraft $d })
+    $dialog.FindName('StoryRandom').Tag=$dialog
+    $dialog.FindName('StoryRandom').Add_Click({ $d=$this.Tag; $d.Tag.Source='random'; $d.Tag.Choice=''; $d.Tag.RequestId=''; $d.Tag.TaskId=''; $d.FindName('StoryStatus').Text='继续后将恢复随机安排。'; Update-StorySelection $d; Save-StoryDraft $d })
+    $dialog.FindName('StoryContinue').Tag=$dialog; $dialog.FindName('StoryContinue').Add_Click({ Submit-Story $this.Tag })
+    $dialog.FindName('StoryReload').Tag=$dialog; $dialog.FindName('StoryReload').Add_Click({ Start-StoryLoad $this.Tag })
+    $dialog.Add_PreviewKeyDown({ if($_.Key -eq 'Escape'){$this.Close()} })
+    $dialog.Add_Closed({ Save-StoryDraft $this; if($this.Tag.Timer){$this.Tag.Timer.Stop()} })
+    Fit-InteractionEditor $dialog
+    $dialog.Width=[Math]::Min(520,$dialog.MaxWidth); $dialog.Height=[Math]::Min(590,$dialog.MaxHeight)
+    Update-StorySelection $dialog
+    return $dialog
+}
+function Restore-StoryDraft($dialog,$context) {
+    $dialog.Tag.Context=$context; $dialog.Tag.Invalid=$false; $dialog.FindName('StoryWorld').Text=[string]$context.world
+    $key=[string]$context.scopeKey+':'+$dialog.Tag.Kind; $draft=$script:storyDrafts[$key]
+    if($draft){
+        $dialog.Tag.Suppress=$true; $dialog.FindName('StoryCustom').Text=[string]$draft.Text; $dialog.Tag.Suppress=$false
+        $dialog.Tag.Pending=[bool]$draft.Pending; $dialog.Tag.TaskId=[string]$draft.TaskId; $dialog.Tag.RequestId=[string]$draft.RequestId
+        if($draft.Version -eq $context.version){$dialog.Tag.Source=[string]$draft.Source;$dialog.Tag.Choice=[string]$draft.Choice}
+        else{$dialog.Tag.Source='';$dialog.Tag.Choice='';if(-not $dialog.Tag.Pending){$dialog.Tag.RequestId='';$dialog.Tag.TaskId=''};$dialog.FindName('StoryStatus').Text='当前剧情已更新，请重新选择。自定义草稿已保留。'}
+    }
+    if($context.plan -and $dialog.Tag.Kind -eq 'tomorrow'){$dialog.FindName('StoryPlan').Text='已安排：'+$context.plan.text+[Environment]::NewLine+'生效日期：'+$context.plan.day+' · '+([string]$context.plan.hour).PadLeft(2,'0')+':00（中国时间）'}else{$dialog.FindName('StoryPlan').Text=''}
+}
+function Start-StoryHttp($dialog,$operation,$body=$null,$query='') {
+    if($dialog.Tag.Http){return}
+    if(-not $script:storyHttpClient){Add-Type -AssemblyName System.Net.Http;$script:storyHttpClient=[Net.Http.HttpClient]::new();$script:storyHttpClient.Timeout=[TimeSpan]::FromSeconds(120)}
+    $request=[Net.Http.HttpRequestMessage]::new();$request.RequestUri=[uri]($endpoint+$query);$request.Method=if($null -eq $body){[Net.Http.HttpMethod]::Get}else{[Net.Http.HttpMethod]::Post}
+    foreach($name in $headers.Keys){[void]$request.Headers.TryAddWithoutValidation($name,[string]$headers[$name])}
+    if($null -ne $body){$request.Content=[Net.Http.StringContent]::new(($body|ConvertTo-Json -Depth 12 -Compress),[Text.Encoding]::UTF8,'application/json')}
+    $dialog.Tag.Http=@{Task=$script:storyHttpClient.SendAsync($request);Request=$request;Operation=$operation}
+}
+function Start-StoryLoad($dialog) {
+    if($dialog.Tag.Http -or $dialog.Tag.Pending){return}
+    $dialog.Tag.Loading=$true;$dialog.Tag.Options=$null;$dialog.FindName('StoryStatus').Text='正在准备剧情选项…';Update-StorySelection $dialog
+    Start-StoryHttp $dialog 'context' $null '?storyContext'
+}
+function Submit-Story($dialog) {
+    if($dialog.Tag.Pending -or $dialog.Tag.Http -or -not $dialog.FindName('StoryContinue').IsEnabled){return}
+    if(-not $dialog.Tag.RequestId){$dialog.Tag.RequestId=[guid]::NewGuid().ToString('N')}
+    $body=@{action='desktop-story-continue';kind=$dialog.Tag.Kind;source=$dialog.Tag.Source;scopeKey=$dialog.Tag.Context.scopeKey;version=$dialog.Tag.Context.version;requestId=$dialog.Tag.RequestId}
+    if($dialog.Tag.Source -eq 'option'){$body.choice=$dialog.Tag.Choice}elseif($dialog.Tag.Source -eq 'custom'){$body.text=$dialog.FindName('StoryCustom').Text}
+    $dialog.Tag.Pending=$true;Save-StoryDraft $dialog;Update-StorySelection $dialog;$dialog.FindName('StoryStatus').Text='提交中…'
+    Start-StoryHttp $dialog 'submit' $body
+}
+function Update-StoryEditor($dialog) {
+    $tag=$dialog.Tag
+    if($tag.Http -and $tag.Http.Task.IsCompleted){
+        $operation=$tag.Http.Operation;$response=$null
+        try{
+            $response=$tag.Http.Task.GetAwaiter().GetResult();$raw=$response.Content.ReadAsStringAsync().GetAwaiter().GetResult();$data=$raw|ConvertFrom-Json
+            if(-not $response.IsSuccessStatusCode){throw [string]$data.error}
+            $tag.Http.Request.Dispose();$tag.Http=$null
+            switch($operation){
+              'context' {Restore-StoryDraft $dialog $data;if($tag.Pending){Start-StoryHttp $dialog 'status' $null ('?storyStatus='+[uri]::EscapeDataString($tag.RequestId))}else{Start-StoryHttp $dialog 'options' @{action='desktop-story-options';kind=$tag.Kind}}}
+              'options' {Set-StoryOptions $dialog $data;$dialog.FindName('StoryStatus').Text='请选择剧情，或填写自定义后点击继续。'}
+              'submit' {
+                if($tag.Kind -eq 'tomorrow'){$tag.Pending=$false;$tag.Source='';$tag.Choice='';$tag.RequestId='';$tag.Context.plan=$data.plan;Restore-StoryDraft $dialog $tag.Context;$tag.Source='';$tag.Choice='';$tag.Pending=$false;$tag.RequestId='';$dialog.FindName('StoryStatus').Text=if($data.plan){'次日剧情已保存。'}else{'已恢复随机安排。'}}
+                else{$tag.TaskId=[string]$data.taskId;$dialog.FindName('StoryStatus').Text='生成中，稍等'}
+              }
+              'status' {
+                switch([string]$data.state){
+                  'not-found' {$tag.Pending=$false;$dialog.FindName('StoryStatus').Text='尚未受理，可继续提交原请求。'}
+                  'completed' {$tag.Pending=$false;$tag.TaskId=[string]$data.taskId;$dialog.FindName('StoryStatus').Text='新壁纸已生成并更换，世界见闻已更新。';if($data.letterStatus -eq 'error'){$dialog.FindName('StoryStatus').Text+='角色来信暂未写成，可稍后补写。'}}
+                  {$_ -in @('error','canceled','needs-attention')} {$tag.Pending=$false;$dialog.FindName('StoryStatus').Text=[string]$data.error;if($data.wallpaperState -eq 'generated'){$dialog.FindName('StoryStatus').Text='壁纸已生成，暂未更换。'+[string]$data.error}}
+                  default {$dialog.FindName('StoryStatus').Text=if($data.state -eq 'retrying'){'等待原任务重试…'}else{'生成中，稍等'}}
+                }
+              }
+            }
+        }catch{
+            if($tag.Http){$tag.Http.Request.Dispose();$tag.Http=$null}
+            $dialog.FindName('StoryStatus').Text=if($operation -eq 'submit' -and $tag.Kind -eq 'today'){'正在确认任务状态…'}else{[string]$_.Exception.Message}
+            if($operation -ne 'status' -and -not($operation -eq 'submit' -and $tag.Kind -eq 'today')){$tag.Pending=$false;$tag.Loading=$false}
+        }finally{if($response){$response.Dispose()};if(-not $tag.Http){$tag.Loading=$false};Update-StorySelection $dialog;Save-StoryDraft $dialog}
+    }
+    if($tag.Pending -and -not $tag.Http){Start-StoryHttp $dialog 'status' $null ('?storyStatus='+[uri]::EscapeDataString($tag.RequestId))}
+    $current=$script:state.storyContext
+    if($current -and $tag.Context.version -and ($current.scopeKey -ne $tag.Context.scopeKey -or $current.version -ne $tag.Context.version)){
+        $tag.Invalid=$true;$tag.Source='';$tag.Choice='';$tag.Options=$null;$dialog.FindName('StoryStatus').Text='当前剧情已更新，请重新选择。自定义草稿已保留。';Update-StorySelection $dialog
+    }
+}
+function Open-Story($kind) {
+    if($script:editor){$script:editor.Activate()|Out-Null;return}
+    Stop-Speech;Play-Effect 'click';$script:editor=New-StoryEditor $kind
+    if($window.IsVisible){$script:editor.Owner=$window}
+    $timer=[Windows.Threading.DispatcherTimer]::new();$timer.Interval=[TimeSpan]::FromMilliseconds(1200);$timer.Tag=$script:editor
+    $timer.Add_Tick({Update-StoryEditor $this.Tag});$script:editor.Tag.Timer=$timer;$timer.Start()
+    Start-StoryLoad $script:editor
+    try{[void]$script:editor.ShowDialog()}finally{$timer.Stop();$script:editor=$null}
+}
+
 $window.FindName('Collapse').Add_Click({ Play-Effect 'click'; Set-Expanded $false })
 $window.FindName('NewsTab').Add_Click({ Play-Effect 'click'; Set-View 'news' })
 $window.FindName('LetterTab').Add_Click({ Play-Effect 'click'; Set-View 'letters' })
+$window.FindName('WorldActionText').Add_TextChanged({ $window.FindName('WorldActionHint').Visibility=if($this.Text.Length){'Collapsed'}else{'Visible'} })
+$window.FindName('RoleActionText').Add_TextChanged({ $window.FindName('RoleActionHint').Visibility=if($this.Text.Length){'Collapsed'}else{'Visible'} })
+$window.FindName('TodayTab').Add_Click({ Open-Story 'today' })
+$window.FindName('TomorrowTab').Add_Click({ Open-Story 'tomorrow' })
 $window.FindName('Reply').Add_Click({ Open-Interaction 'reply' })
 $window.FindName('Interfere').Add_Click({ Open-Interaction 'interfere' })
 $menuNews.Add_Click({ Play-Effect 'click'; Set-View 'news'; Set-Expanded $true })

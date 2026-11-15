@@ -3,7 +3,7 @@
 ## 四步开始
 
 1. 下载并打开 **DeepSeek Harness（DSH）**，登录、配置模型账户。
-2. 下载 **旅行壁纸安装包**，文件名为 `旅行壁纸-0.14.1.tgz`。不用下载源码，也不用手动解压。
+2. 下载 **旅行壁纸安装包**，以 [Releases](https://github.com/chokingson/dsh-travel-wallpaper/releases) 实际提供的版本为准（文件名类似 `旅行壁纸-版本号.tgz`）。不用下载源码，也不用手动解压。
 3. 新建聊天，点加号，把安装包作为附件交给 DSH，告诉它：
 
    > 帮我安装这个旅行壁纸插件，装好后告诉我怎么用。
@@ -30,6 +30,6 @@
 
 升级前可先在“已到访世界”导出喜欢的壁纸。不要为了升级删除整个 DSH 数据目录。
 
-不论安装失败、设置看不懂，还是觉得哪里不好用，都可以联系作者消尽森：微信 `q871282948`；项目公开后也可使用 [GitHub 问题反馈](https://github.com/chokingson/dsh-travel-wallpaper/issues)。附截图时遮住密钥和登录信息。
+不论安装失败、设置看不懂，还是觉得哪里不好用，都可以联系作者消尽森：微信 `q871282948`；也可使用 [GitHub 问题反馈](https://github.com/chokingson/dsh-travel-wallpaper/issues)。附截图时遮住密钥和登录信息。
 
 开发者需要的内部标识、命令行与升级细节，放在 [开发说明](DEVELOPMENT.md)，普通用户不需要填写。

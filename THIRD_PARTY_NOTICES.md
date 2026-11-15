@@ -2,7 +2,7 @@
 
 ## 订阅适配代码
 
-`vendor/subscriptions.js` 节选并改编自 dsh-image-gen 0.9.1 的订阅模块，Apache License 2.0，完整许可见 `vendor/LICENSE-dsh-image-gen.txt`。修改：拆成独立模块、移除对原插件运行时的依赖、添加本插件导出与登录界面文字。本插件运行时不需要安装 dsh-image-gen。
+`vendor/subscriptions.js` 节选并改编自 dsh-image-gen 0.9.1 的订阅模块，Apache License 2.0，完整许可见 `vendor/LICENSE-dsh-image-gen.txt`。修改：拆成独立模块、移除对原插件运行时的依赖、添加本插件导出与登录界面文字、认证失效标记及重新登录恢复通知。本插件运行时不需要安装 dsh-image-gen。
 
 原模块中保留的上游署名：
 

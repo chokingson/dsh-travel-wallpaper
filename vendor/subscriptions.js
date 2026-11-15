@@ -84,8 +84,11 @@ async function formTokenRequest(url, params, fetchImpl) {
 		signal: AbortSignal.timeout(25e3)
 	});
 	if (!response.ok) {
-		await response.body?.cancel();
-		throw new Error(`订阅登录或刷新失败（HTTP ${String(response.status)}），请重新授权`);
+		const payload = await response.json().catch(() => ({}));
+		const needsLogin = response.status === 401 || (response.status === 400 && ["invalid_grant", "invalid_token"].includes(payload.error));
+		throw Object.assign(new Error(`订阅登录或刷新失败（HTTP ${String(response.status)}），${needsLogin ? "请重新授权" : "请稍后重试"}`), {
+			responseStatus: response.status, beforeSubmission: true, ...(needsLogin ? {code: "SUBSCRIPTION_AUTH_REQUIRED"} : {})
+		});
 	}
 	try {
 		const parsed = await response.json();
@@ -957,6 +960,8 @@ function vendorOf(provider) {
 function subscriptionOauthRef(vendor) {
 	return credentialRef(`${vendor.toUpperCase()}_OAUTH_1`);
 }
+const subscriptionFailureRef = vendor => `TRAVEL_WALLPAPER_AUTH_${vendor.toUpperCase()}`;
+const subscriptionFingerprint = blob => createHash("sha256").update(JSON.stringify([blob.accessToken, blob.refreshToken])).digest("hex");
 /**
 * Per-application manager instance. Constructed once in the plugin entry,
 * owns the pending-login map (PKCE state to login session) and the refresh
@@ -975,8 +980,10 @@ var SubscriptionManager = class {
 	/** Antigravity needs a per-account project id on every generation call. */
 	projectCache = /* @__PURE__ */ new Map();
 	loginClosers = new Map();
-	constructor(ctx) {
+	onAuthorized;
+	constructor(ctx, options = {}) {
 		this.ctx = ctx;
+		this.onAuthorized = options.onAuthorized;
 		ctx.effect?.(() => () => { for (const close of this.loginClosers.values()) close(); this.pending.clear(); }, 'travel: subscription callbacks');
 	}
 	/** Read a vendor's stored blob, or undefined when signed out. */
@@ -993,6 +1000,9 @@ var SubscriptionManager = class {
 	async loginStatus(vendor) {
 		const blob = await this.readBlob(vendor);
 		if (blob === void 0) return { state: "logged-out" };
+		let failed;
+		try { failed = JSON.parse((await this.ctx.credentials.resolve(subscriptionFailureRef(vendor)))?.value || "null"); } catch {}
+		if (failed?.fingerprint === subscriptionFingerprint(blob) || (!blob.refreshToken && blob.expiresAt > 0 && blob.expiresAt <= Date.now())) return {state: "reauthorization-required"};
 		return {
 			state: "logged-in",
 			email: blob.email
@@ -1030,6 +1040,8 @@ var SubscriptionManager = class {
 		this.pending.delete(state);
 		const blob = vendor === "codex" ? await codexExchangeCode(codexConfig(), row.pkce, code) : vendor === "antigravity" ? await antigravityExchangeCode(antigravityConfig(), row.pkce, code) : await grokExchangeCode(grokConfig(), row.pkce, code);
 		await this.saveBlob(vendor, blob);
+		// A successful login remains successful if recovery of an old task fails.
+		await Promise.resolve().then(() => this.onAuthorized?.(vendor)).catch(() => {});
 		return `<!doctype html><meta charset="utf-8"><title>旅行壁纸</title><p lang="zh-CN">${providerNameOf(vendor)} 登录成功（${escapeHtml(blob.email)}），可以关闭此页返回设置。</p><p lang="en">${providerNameOf(vendor)} sign-in successful (${escapeHtml(blob.email)}). You can close this page and return to settings.</p>`;
 	}
 	/** Sign out: clear the blob and the caches. No other setting changes. */
@@ -1037,10 +1049,12 @@ var SubscriptionManager = class {
 		await this.ctx.credentials.unset(subscriptionOauthRef(vendor));
 		this.blobCache.delete(vendor);
 		this.projectCache.clear();
+		await this.ctx.credentials.unset?.(subscriptionFailureRef(vendor));
 	}
 	async saveBlob(vendor, blob) {
 		await this.ctx.credentials.set(subscriptionOauthRef(vendor), serializeBlob(blob));
 		this.blobCache.set(vendor, blob);
+		await this.ctx.credentials.unset?.(subscriptionFailureRef(vendor));
 	}
 	/**
 	* Return a blob whose access token is usable; refreshes first when the
@@ -1071,6 +1085,18 @@ var SubscriptionManager = class {
 	}
 	/** Generate one image through the logged-in account. b64 reply decoded host-side. */
 	async generate(options) {
+		const attempted = await this.readBlob(options.vendor);
+		try { return await this.generateAuthorized(options); }
+		catch (error) {
+			if (attempted && error.code === "SUBSCRIPTION_AUTH_REQUIRED") {
+				const current = await this.readBlob(options.vendor);
+				const fingerprint = error.credentialFingerprint || subscriptionFingerprint(attempted);
+				if (current && subscriptionFingerprint(current) === fingerprint) await this.ctx.credentials.set(subscriptionFailureRef(options.vendor), JSON.stringify({fingerprint, at: new Date().toISOString()})).catch(() => {});
+			}
+			throw error;
+		}
+	}
+	async generateAuthorized(options) {
 		const { vendor, prompt } = options;
 		const session = await this.ensureFresh(vendor);
 		const text = prompt.trim();
@@ -1136,7 +1162,7 @@ var SubscriptionManager = class {
 		const payload = await response.json().catch(() => ({}));
 		if (!response.ok) {
 			const detail = extractErrorMessage(payload);
-			throw new Error(`${vendor} HTTP ${String(response.status)}${detail !== void 0 ? `: ${diagnosticText(detail, session)}` : ""}`);
+			throw Object.assign(new Error(`${vendor} HTTP ${String(response.status)}${detail !== void 0 ? `: ${diagnosticText(detail, session)}` : ""}`), {responseStatus: response.status, ...(response.status === 401 ? {code: "SUBSCRIPTION_AUTH_REQUIRED", credentialFingerprint: subscriptionFingerprint(session)} : {})});
 		}
 		return parseImages(payload);
 	}

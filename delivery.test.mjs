@@ -30,6 +30,35 @@ test('世界简报独立开启、按成图缓存；整理失败不阻断信件�
  await other.tick({...scope,lettersEnabled:true,letterTime:'20:00',rolesEnabled:true,newsBallEnabled:true});assert.equal((await other.inbox()).length,1);assert.ok((await other.desktopState({...scope,newsBallEnabled:true})).newsError);
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+test('定时制作简报失败须报告，三分钟后仅重试简报并复用已存来信，重启复用成功缓存',async()=>{
+ const{createDeliveryService}=await import('./delivery.js');const dir=await mkdtemp(join(tmpdir(),'scheduled-delivery-retry-'));let clock=new Date('2026-11-07T12:00:00Z'),calls=0;
+ const config={...scope,rolesEnabled:true,lettersEnabled:false,newsBallEnabled:false},options={immediate:true,prepare:true,refresh:true,issueId:photo.issueId,strict:true};
+ const deps={dir,archive:async()=>({images:[photo]}),now:()=>clock,writeNews:async()=>{if(++calls===1)throw Error('离线简报故障');return{headline:'重试后的世界见闻',summary:'已保存画面的简报整理完成。'};}};
+ try{let service=createDeliveryService(deps);await assert.rejects(service.tick(config,options),/简报.*未.*完成/);const saved=(await service.inbox())[0];assert.equal((await service.inbox()).length,1);assert.equal((await service.desktopState(config)).news,null);
+ clock=new Date('2026-11-07T12:03:00Z');await service.tick(config,{prepare:true,issueId:photo.issueId});assert.equal(calls,1,'普通轮询保留五分钟冷却');await service.tick(config,{...options,retry:true});assert.equal(calls,2);assert.deepEqual(await service.inbox(),[saved]);assert.equal((await service.desktopState(config)).news.source.issueId,photo.issueId);assert.equal((await service.desktopState(config)).newsError,'');
+ service.dispose();service=createDeliveryService(deps);await service.tick(config,{...options,retry:true});assert.equal(calls,2,'已完成简报在重启后直接使用缓存');assert.deepEqual(await service.inbox(),[saved]);assert.equal((await service.desktopState(config)).news.headline,'重试后的世界见闻');
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('后台简报失败后排队的严格制作须报告失败，后台轮询仍正常结束',async()=>{
+ const{createDeliveryService}=await import('./delivery.js');const dir=await mkdtemp(join(tmpdir(),'scheduled-delivery-queue-'));let release,started;const gate=new Promise(r=>release=r),firstStarted=new Promise(r=>started=r),config={...scope,rolesEnabled:true,lettersEnabled:true,newsBallEnabled:true};let background,scheduled;
+ try{const service=createDeliveryService({dir,now:()=>new Date('2026-11-07T12:00:00Z'),archive:async()=>({images:[photo]}),writeNews:async()=>{started();await gate;throw Error('离线简报故障');}});background=service.tick(config);await firstStarted;scheduled=service.tick(config,{prepare:true,issueId:photo.issueId,strict:true});const rejected=assert.rejects(scheduled,/简报.*未.*完成/);release();await background;await rejected;assert.equal((await service.inbox()).length,1);
+ }finally{release?.();await Promise.allSettled([background,scheduled]);await rm(dir,{recursive:true,force:true});}
+});
+
+test('取消预约制作会阻止归档等待后的来信和简报写入',async()=>{
+ const{createDeliveryService}=await import('./delivery.js');const dir=await mkdtemp(join(tmpdir(),'scheduled-delivery-cancel-archive-'));let release,started,calls=0,work;const gate=new Promise(r=>release=r),waiting=new Promise(r=>started=r),controller=new AbortController(),config={...scope,rolesEnabled:true,lettersEnabled:true,newsBallEnabled:true};
+ try{const service=createDeliveryService({dir,archive:async()=>{started();await gate;return{images:[photo]};},now:()=>new Date('2026-11-07T12:00:00Z'),writeNews:async()=>{calls++;return{headline:'不应发布',summary:'已取消'};}});work=service.tick(config,{prepare:true,issueId:photo.issueId,strict:true,signal:controller.signal});const stopped=assert.rejects(work,error=>error.name==='AbortError');await waiting;controller.abort();release();await stopped;assert.equal((await service.inbox()).length,0);assert.equal(calls,0);assert.equal((await service.desktopState(config)).news,null);}
+ finally{release?.();await Promise.allSettled([work]);await rm(dir,{recursive:true,force:true});}
+});
+
+test('简报写作者忽略取消也立即结束投递，迟到结果不能覆盖下一批次新闻',async()=>{
+ const{createDeliveryService}=await import('./delivery.js');const{readdir,readFile}=await import('node:fs/promises');const dir=await mkdtemp(join(tmpdir(),'scheduled-delivery-cancel-news-'));const config={...scope,rolesEnabled:true,lettersEnabled:true,newsBallEnabled:true},controller=new AbortController(),canceled='2026-11-07-bbbb',next='2026-11-07-cccc';let picture={...photo},release,started,signal,work;const gate=new Promise(r=>release=r),waiting=new Promise(r=>started=r);
+ try{const service=createDeliveryService({dir,archive:async()=>({images:[picture]}),now:()=>new Date('2026-11-07T12:00:00Z'),writeNews:async(p,c)=>{if(p.issueId===canceled){signal=c.newsAbortSignal;started();await gate;}return{headline:p.issueId,summary:'本批次新闻'};}});await service.tick(config,{prepare:true,issueId:photo.issueId});picture={...photo,issueId:canceled};work=service.tick(config,{prepare:true,issueId:canceled,strict:true,signal:controller.signal});const stopped=work.then(()=>null,error=>error);await waiting;controller.abort();assert.equal(signal.aborted,true);const result=await Promise.race([stopped,new Promise(r=>setTimeout(()=>r(null),250))]);assert.equal(result?.name,'AbortError','不等待忽略取消的写作者');
+ picture={...photo,issueId:next};await service.tick(config,{prepare:true,issueId:next,strict:true});release();await new Promise(r=>setImmediate(r));const state=await service.desktopState(config);assert.equal(state.news.headline,next);for(const file of await readdir(join(dir,'news'))){if(!file.endsWith('.json'))continue;assert.notEqual(JSON.parse(await readFile(join(dir,'news',file),'utf8')).source?.issueId,canceled);}
+ }finally{release?.();await Promise.allSettled([work]);await rm(dir,{recursive:true,force:true});}
+});
+
 test('简报写作只取画面事件，不携带角色来信或称呼，默认Flash Off',async()=>{
  const{writeWorldNews}=await import('./delivery.js');let task;
  const result=await writeWorldNews({async *stream(req){assert.equal(req.reasoningEffort,'off');assert.equal(req.model,'deepseek-flash');task=req.messages[0].content[0].text;yield{type:'text-delta',text:'{"headline":"江东春市开张","summary":"沿河市集迎来第一批客人。"}'};}},photo,{});

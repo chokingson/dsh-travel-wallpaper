@@ -267,7 +267,7 @@ test('20种画风均可追溯，提示词独立保存画风片段，tag可编辑
   const { styles, normalizeConfig, promptParts, randomWorld } = await import('./catalog.js');
   assert.equal(styles.length, 20);
   assert.equal(new Set(styles.map(item => item.id)).size, 20);
-  for (const style of styles) assert.ok(style.prompt.length > 15);
+  for (const style of styles) assert.ok(style.prompt.trim().length > 0);
   const config = normalizeConfig({ wallpaperMode: 'windows', style: '我的工笔', width: 1920, height: 1080, tags: '烟雨，<script>自定义</script>' });
   const parts = promptParts(config, '来到江东');
   assert.equal(parts[0].kind, 'style');

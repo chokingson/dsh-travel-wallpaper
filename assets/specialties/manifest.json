@@ -1,0 +1,506 @@
+{
+  "version": 1,
+  "tool": "built-in imagegen",
+  "items": [
+    {
+      "worldCaseId": "frog-world",
+      "id": "specialty:frog-world:01",
+      "file": "frog-world.webp",
+      "sourceName": "exec-529295db-8851-47e6-8189-cb5894349ffe.png",
+      "sha256": "7d7789c72aa74173d4c14b56abbb7c25ac00b0cb6388242d90df8d07c2ab0048",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：抹茶绿国藏茶叶蛋。固定外观：精致浅绿礼盒内放着四枚淡抹茶绿色的茶叶蛋，蛋壳有细细的青玉色裂纹。。材质与可见特性：使用蛙世界特制绿茶煮成，自然存放永不过期；绿意内敛，壳面带轻微茶香雾感。。特殊现象的视觉形态或承载方式：打开的礼盒与四枚完整鸡蛋清楚呈现，不画蛙或劫案，包装无字无标志。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:45:40.218Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "lava-earth",
+      "id": "specialty:lava-earth:01",
+      "file": "lava-earth.webp",
+      "sourceName": "exec-451f7fd3-2930-41cf-8d99-c27b5871ab6f.png",
+      "sha256": "6d77d806b1706cdbe1041c60276750c42d83c3777a4aec5ef7127a981fa51dd3",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：浮岸温差碟。固定外观：一枚掌心大小的黑曜石浅碟，边缘嵌有橘红色陶质齿纹，中央留着一圈凝固熔流。。材质与可见特性：耐热岩片与烧结陶土层叠，升温时边缘由暗橘变为亮红；离开热源后缓慢变暗。。特殊现象的视觉形态或承载方式：浅碟独立平放，边缘微亮，保留石材颗粒与陶土接缝，不展示火山场景。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:47:44.088Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "lifeless-gold-planet",
+      "id": "specialty:lifeless-gold-planet:01",
+      "file": "lifeless-gold-planet.webp",
+      "sourceName": "exec-7c9bf1a8-92be-42bf-9c2e-690c6705c022.png",
+      "sha256": "9a5102a85392c3f9767e691a8471a77744ca231c33b81c6b3d024903e46a7b7d",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：无主黄金漂砾。固定外观：一块鸡蛋大小的金质卵形石砾，圆润处映出暖光，侧面保留一条天然锐脊。。材质与可见特性：来自无生命金质地貌的高纯度黄金，坑洼和磨痕由物理环境形成，表面没有人工印记。。特殊现象的视觉形态或承载方式：单块金砾完整呈现，细腻金属反射和天然棱脊可辨，不画矿工或印章。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:47:44.399Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "hundred-ghosts-city",
+      "id": "specialty:hundred-ghosts-city:01",
+      "file": "hundred-ghosts-city.webp",
+      "sourceName": "exec-92e1f49a-9a2d-4de9-83e8-124fb586463b.png",
+      "sha256": "d50b1170b5baf48ba721a08ba3695e54c1a07b2bcf5c268e94a7fa78b5075e1f",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：失名旅魂。固定外观：一缕浅蓝半透明的残魂蜷成小小的雨滴形，中心有一盏极微弱的暖色灯影。。材质与可见特性：属于可被收藏的灵魂余响，不是活体生物；没有固定五官，旧记忆只能表现为模糊光斑。。特殊现象的视觉形态或承载方式：仅以雨滴形半透明魂影和内部暖灯表现主体，不画人体、面孔、牢笼或送达现场。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:47:44.684Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "cambrian-sea",
+      "id": "specialty:cambrian-sea:01",
+      "file": "cambrian-sea.webp",
+      "sourceName": "exec-078c5cea-3972-401f-a165-3bda22a07ccc.png",
+      "sha256": "eda4fff2413b039bc0d231af689bb702120aa79213db73a3cb6d4af4618043ee",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：浅海潮纹砂饼。固定外观：一块自然胶结的淡青色扁圆砂岩，表面有细密波纹和数个空的微小凹穴。。材质与可见特性：细砂与贝壳碎屑长期胶结成形，凹穴里只剩矿物，不含活体或生物卵。。特殊现象的视觉形态或承载方式：完整砂岩略斜放，波纹起伏清楚，仅有少量附着的白色矿盐。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:50:31.961Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "jurassic",
+      "id": "specialty:jurassic:01",
+      "file": "jurassic.webp",
+      "sourceName": "exec-85bf081c-f8a8-4bce-afab-6aef3114649d.png",
+      "sha256": "03f853c2723c25e248c5710459020c293d280669b4c8adbec697a6681dd1a752",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：巨足雨塘泥印。固定外观：一片厚实的赭褐色干泥板，中央陷着三趾巨足印，边上保留蕨叶压痕。。材质与可见特性：雨后泥洼脱水硬化形成的自然印模，细小砂粒与裂纹保留足部受力方向。。特殊现象的视觉形态或承载方式：整块三趾凹印置于白底，蕨叶仅为平面压痕，不画恐龙或活植物。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:50:33.490Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "cave-painting",
+      "id": "specialty:cave-painting:01",
+      "file": "cave-painting.webp",
+      "sourceName": "exec-d2bb525f-ec92-4952-ba43-1adab39c8012.png",
+      "sha256": "e0124d0ffd7d67b7620591d227e59310d83b2373ab4fd13f467a4b177bed648a",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：赭石记忆掌印。固定外观：一块巴掌大的浅灰岩片，上面有褪色的赭红手掌轮廓和三道不规则炭线。。材质与可见特性：天然赭石与炭粉渗入岩面，掌印边缘能看出吹撒颜料形成的细点。。特殊现象的视觉形态或承载方式：单块有缺角的岩片完整呈现，只保留图形，炭线不是可读文字。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:50:34.895Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "ice-migration",
+      "id": "specialty:ice-migration:01",
+      "file": "ice-migration.webp",
+      "sourceName": "exec-f9029a75-4eca-4848-92c8-2755e3a3b51e.png",
+      "sha256": "f5f4a4f83121d63d9dbfbbc823b80ca6ad4a2ca29660f20bd80f676255dc583e",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：避风谷火种匣。固定外观：骨白色小匣由两片磨薄的石板合拢，外缠褐色旧皮绳，内有暗红余烬。。材质与可见特性：隔热矿粉和干燥炭屑让余火缓慢保温，皮绳已有反复扎紧的磨痕。。特殊现象的视觉形态或承载方式：半开的石匣露出少量暗红炭点，细小无字刻槽可见，不画熊熊火堆。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:53:04.825Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "three-kingdoms-novel",
+      "id": "specialty:three-kingdoms-novel:01",
+      "file": "three-kingdoms-novel.webp",
+      "sourceName": "exec-7e25a219-51f6-4152-b727-94661bf21ba6.png",
+      "sha256": "8279c40a8cc63add1508f8066ffa88d5e9f9b343c34973d09a5acdc630464ebb",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：渡口双鱼符。固定外观：两片可扣合的青铜鱼形小符，一片微绿，一片露出磨亮的金属脊线。。材质与可见特性：双片鱼纹能够对合，边缘缺口各不相同，表面有渡口水气造成的细锈。。特殊现象的视觉形态或承载方式：两半鱼符一合一分斜置，展示相扣结构和青铜质地，不刻文字。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:53:06.235Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "tang-lantern",
+      "id": "specialty:tang-lantern:01",
+      "file": "tang-lantern.webp",
+      "sourceName": "exec-0a55c9a3-e1fa-4aca-bbd1-70350a1e1096.png",
+      "sha256": "719350153aa38b737669e395ca2067e0dd54cab8bb054612c644bca8e84866d6",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：梦河折光灯芯。固定外观：一小截金色编结灯芯悬在透明琉璃托里，上方浮着一个浅粉色的小拱桥光影。。材质与可见特性：灯芯留下灯术的余光，入梦时光影会轻轻舒展；不是缩小的真实建筑。。特殊现象的视觉形态或承载方式：灯芯与无字琉璃托为实体，桥形余光小巧通透，周围仍是纯白。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:53:07.615Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "song-night-market",
+      "id": "specialty:song-night-market:01",
+      "file": "song-night-market.webp",
+      "sourceName": "exec-56c1d90f-6086-47a6-b492-5a025735b08a.png",
+      "sha256": "fc4caf2b89add86ce5626819f030212f773dad542dbb6744b87a2d009faeff68",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：汴桥酥荷糕。固定外观：四枚荷瓣形的浅金色酥糕盛在素色小竹盒里，糕缝透出一点栗褐色馅心。。材质与可见特性：层层酥皮带有轻薄碎屑，花形用手工模具压出，竹盒不印商号。。特殊现象的视觉形态或承载方式：竹盒略开，四枚糕点完整可辨，少量酥屑落在盒内，不画餐桌或摊主。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:55:28.833Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "sail-clock-island",
+      "id": "specialty:sail-clock-island:01",
+      "file": "sail-clock-island.webp",
+      "sourceName": "exec-7487c062-a25d-44b2-8cb9-247f03c8ceeb.png",
+      "sha256": "4572f711a764aa2cb4928027a13b6e79a09c5d618b594e70e975ec4464f2fe34",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：离岛双速沙漏。固定外观：一只黄铜提架内并列两支细长沙漏，一边装银白砂，一边装暗蓝砂。。材质与可见特性：两支沙漏分别以出发岛与目的岛的刻度调速，砂速不同但不会改变持有者寿命。。特殊现象的视觉形态或承载方式：双沙漏保持完整轮廓，砂柱各自可见，提架仅有无字刻线。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:55:30.901Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "republic-rain",
+      "id": "specialty:republic-rain:01",
+      "file": "republic-rain.webp",
+      "sourceName": "exec-5782f66b-1e73-4023-be32-edaf8b20c8c7.png",
+      "sha256": "8ba496fbe91050de8c3c39992e1962850527532a63b8bba46d4e43be623e0481",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：雨巷修伞扣。固定外观：一枚银灰色燕尾形小扣，穿着一截墨绿色伞面布，布角有细密的手缝线。。材质与可见特性：薄铜片包边防锈，布料有柔和防水光泽，扣面留着修伞钳压出的痕迹。。特殊现象的视觉形态或承载方式：小扣与布角单独置于白底，展示弯折结构、铜锈和缝线。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:55:32.592Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "noir-detective",
+      "id": "specialty:noir-detective:01",
+      "file": "noir-detective.webp",
+      "sourceName": "exec-504bcb25-4e55-41dc-ad2e-bfd3f07af0aa.png",
+      "sha256": "555489d0bfcaeb4bce77e6b50726af8e0943a240f2c0cbc4e8431cfe825206e8",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：不在场的底片。固定外观：一张卷起半角的黑白摄影底片夹在窄纸套中，格窗里仅显出一把空椅子的轮廓。。材质与可见特性：银盐颗粒粗细不均，有一格曝光不足；影像是旧线索，不能证明任何人有罪。。特殊现象的视觉形态或承载方式：底片呈深灰半透明，纸套纯净无字，椅子只是底片内的微小影像。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:57:15.020Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "pixel-arcade",
+      "id": "specialty:pixel-arcade:01",
+      "file": "pixel-arcade.webp",
+      "sourceName": "exec-f62497d5-f48d-4f41-9fe4-c805bf3e1f34.png",
+      "sha256": "0541c3b48ab627c37219af450c3a2f3938a05cea7182d7ef7b0b170ac4489c20",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：越界备用砖。固定外观：一块有八位像素轮廓的橘红砖，右上角缺去一个方格，边缘浮着三枚淡黄像素点。。材质与可见特性：砖体既有像素切边又有薄薄体积，缺角是关卡接口，不能无限复制物品。。特殊现象的视觉形态或承载方式：单块砖斜向悬置，三个像素点作为其接口光效，不出现计分数字。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:57:16.744Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "millennium-web",
+      "id": "specialty:millennium-web:01",
+      "file": "millennium-web.webp",
+      "sourceName": "exec-d682d6d3-d061-48fa-9068-7df694909bc8.png",
+      "sha256": "ebd6b725da65c512b580e841aeec6e04ad47d5944976d1ebb04b56715e1e9ddc",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：离线小屋书签。固定外观：透明蓝塑料夹片上嵌着一个像素小屋图案，尾端系着淡黄色短绳。。材质与可见特性：夹片表面有早期数码制品般的细微划痕，小屋窗口透出柔和绿光。。特殊现象的视觉形态或承载方式：透明夹片与像素小屋图形完整展示，不含网址、按钮文字或商标。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T14:57:18.225Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "free-crime-planet",
+      "id": "specialty:free-crime-planet:01",
+      "file": "free-crime-planet.webp",
+      "sourceName": "exec-ab46c020-ca28-43da-9ff0-80d3631ff6a4.png",
+      "sha256": "1a30787623101e321b68ea1062c2fc683390c82c3df68e74f8c851f5b6a796f9",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：罗胜都泊车空奖章。固定外观：一枚歪斜的亮铜圆章挂在断开的停车杆小支架上，表面只有一个空车位图案。。材质与可见特性：铜章抛光耀眼而支架满是刮痕；其所谓奖励只是一段都市调侃，没有真实兑换价值。。特殊现象的视觉形态或承载方式：小奖章连同短支架独立陈列，空车位用无字线框图形表示。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:00:01.713Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "huaqiang-melon",
+      "id": "specialty:huaqiang-melon:01",
+      "file": "huaqiang-melon.webp",
+      "sourceName": "exec-94ba2acb-bf9e-45f9-b104-b64794c1b6af.png",
+      "sha256": "fa201e72337d235a16a38c2835512e6565418f22e70726bb691342531b46f87e",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：保熟验瓜锤。固定外观：一把拇指长短的木柄小锤，锤头像一片深绿瓜皮，横断面露出淡白瓤纹。。材质与可见特性：敲击不同硬度会产生不同闷响；它只是验瓜工具，不能保证每一只瓜都甜。。特殊现象的视觉形态或承载方式：瓜皮形锤头与短木柄清晰展示，不画人物、刀具或场景对白。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:00:03.090Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "remix-world",
+      "id": "specialty:remix-world:01",
+      "file": "remix-world.webp",
+      "sourceName": "exec-2077a73b-30df-4bb2-aaa9-e101ff026ec6.png",
+      "sha256": "4dbd752088f38fa00cd4d1a941007afb4b3aa39d190c34ecbbccbd6325d363c2",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：三拍漏拍器。固定外观：一个铝质三齿音叉，其中一齿略短，齿间浮着三圈错开的青紫色声波。。材质与可见特性：发出三拍循环，偶尔空出一拍；暂停时声波仍短暂残留，但不操纵现实声音设备。。特殊现象的视觉形态或承载方式：以三齿音叉为承载物，把声音画成无字弧线，不画音符文字或播放器界面。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:00:04.452Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "cyberpunk",
+      "id": "specialty:cyberpunk:01",
+      "file": "cyberpunk.webp",
+      "sourceName": "exec-e28a2705-8a33-4979-9690-044c81597efb.png",
+      "sha256": "afcc2ce642969fdffd76d9e88905b816feca318c20a0ae8d7309bc026535552b",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：离线霓虹胸针。固定外观：一枚钛黑色几何胸针嵌着细窄的品红与青蓝光条，背面露出机械扣。。材质与可见特性：微型独立电源支持柔和的断续光，不联网、不采集身份，也不附带企业权限。。特殊现象的视觉形态或承载方式：胸针正反结构略有重叠，光条鲜明但不过曝，背景保持纯白。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:02:00.490Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "beast-federation",
+      "id": "specialty:beast-federation:01",
+      "file": "beast-federation.webp",
+      "sourceName": "exec-388ef789-bbad-4504-9bbd-88e95c3626b0.png",
+      "sha256": "384c4469a509bc3f2108034cdd8a2ce62291fac5b5083785c9ea8b3a41ebf587",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：多感官迎客铃。固定外观：一只奶白陶铃悬在矮小的圆环支架里，铃沿嵌着彩色触点与一片薄金属舌。。材质与可见特性：摇动时同时产生轻响、柔光和可触知的震动，便于不同感官的访客察觉。。特殊现象的视觉形态或承载方式：陶铃、支架与触点完整展示，少量光晕和震动弧线围绕主体，不出现角色。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:02:01.945Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "wangdong-planet",
+      "id": "specialty:wangdong-planet:01",
+      "file": "wangdong-planet.webp",
+      "sourceName": "exec-822af607-91d4-426e-a974-a7b0531b5938.png",
+      "sha256": "9e069a754cd5367363a0b120690393945b7add91a97e75660021833b9c78de92",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：错址空间折叠盒。固定外观：一个深红与米白拼色的小快递盒，盒盖内侧折出一小片淡蓝空间折光。。材质与可见特性：纸箱纤维真实，折光接口能保存一次旧投递的回声；它不是可用的真实物流服务。。特殊现象的视觉形态或承载方式：无字纸盒半开，蓝色折光像窄小透明薄片，不能出现真实企业图标或运单。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:02:03.282Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "sticky-planet",
+      "id": "specialty:sticky-planet:01",
+      "file": "sticky-planet.webp",
+      "sourceName": "exec-edc0d47d-117f-474b-9e8b-adca3fc25814.png",
+      "sha256": "37c97e2d61d377d0482f14d1ef42bfb73551a9093201ecb3f850ae461ad9d537",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：芝麻香黏黏胶。固定外观：一团乌灰偏紫的胶质物盘在无字浅碟里，表面拉出三根圆润短丝，夹着浅金细点。。材质与可见特性：离体胶质样本不含活体，滑溜黏润，带芝麻糊般的香味；在虚构叙事里香气可附着一天。。特殊现象的视觉形态或承载方式：用黏度、拉丝和柔和气味弧线表现物质，不能画成长眼睛或有表情的活怪物。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:04:19.615Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "dinosaur-cultivation",
+      "id": "specialty:dinosaur-cultivation:01",
+      "file": "dinosaur-cultivation.webp",
+      "sourceName": "exec-77136ddc-af23-414e-bee4-dc0047cf60a4.png",
+      "sha256": "9498e56cd0851a3b19a3e12c492800c470f78599e74a664f5ee6d6f521751c9d",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：巨爪打坐蒲团。固定外观：一只厚实的小圆蒲团，竹叶纤维编成三瓣凹陷，边上系着一枚暗绿色石扣。。材质与可见特性：编织纹理粗壮，三瓣凹槽适应恐龙脚爪，石扣仅用于压住席边，不是力量等级标志。。特殊现象的视觉形态或承载方式：完整圆蒲团独立陈列，三瓣压痕明显，不画恐龙、打坐者或修行文字。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:04:20.959Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "victoria",
+      "id": "specialty:victoria:01",
+      "file": "victoria.webp",
+      "sourceName": "exec-5e0de3fb-d3af-4b21-8bc6-136132b0c447.png",
+      "sha256": "572287c4db71633d40b31f47592cddfb9b1506ba556daabc0dbfb2de515fcbed",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：天空城冷凝铜花。固定外观：一簇黄铜叶片从小底座展开，叶尖挂着三滴清澈的冷凝水，中心是一截细铜管。。材质与可见特性：薄铜叶冷却蒸汽后收集水滴，表面由新铜金色过渡到边缘青绿氧化层。。特殊现象的视觉形态或承载方式：完整铜花构件与三滴水清晰可见，少量透明蒸汽轻绕，不画城市背景。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:04:22.256Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "elf-machinery",
+      "id": "specialty:elf-machinery:01",
+      "file": "elf-machinery.webp",
+      "sourceName": "exec-0910f35d-7a12-4b04-b53a-b344bb2aaf0c.png",
+      "sha256": "3dc3fe91e4c1526259a31591116ee8638ed3383f04b5ef43da3d09efeb8db524",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：古树落年叶。固定外观：一片自然脱落的半透明金绿树叶，叶脉像细小河道，叶柄套着柔软的草纤维环。。材质与可见特性：离枝后没有生命活动，叶脉留着森林自然魔法的浅光，脉纹随入射光显露。。特殊现象的视觉形态或承载方式：单片叶子完整舒展，清楚展示叶脉和纤维环，背景无森林或人物。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:11:11.477Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "peach-blossom-world",
+      "id": "specialty:peach-blossom-world:01",
+      "file": "peach-blossom-world.webp",
+      "sourceName": "exec-5083c94d-14e3-4f8e-bd0b-c0a1c563fd91.png",
+      "sha256": "4a9409723719049f11c799598a277c48ba8d14f1ac4c6cf00005d9c652609b34",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：溪口桃木水盏。固定外观：一只浅桃色木盏保留一小块树皮，盏底有自然弯曲的木纹，旁边放着一瓣干桃花。。材质与可见特性：用落木磨制，内壁抛光，外侧保留水流冲刷的圆润痕迹；干花不再具有生命。。特殊现象的视觉形态或承载方式：木盏斜置露出内壁与自然木纹，干花仅作小配件，不绘田园场景。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:11:12.917Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "mountain-village-rites",
+      "id": "specialty:mountain-village-rites:01",
+      "file": "mountain-village-rites.webp",
+      "sourceName": "exec-5306e8d1-56cb-432e-8db0-970084970209.png",
+      "sha256": "fbd89237c57ddfa71fd93475173c556d25cfd1c93fcb4cc121cd23231d766858",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：夜祀封口小陶灯。固定外观：一盏褐黑色矮陶灯，上口被一片薄石盖压住，缝隙透出细细的琥珀光。。材质与可见特性：粗陶混着云母颗粒，石盖有反复起落的磨痕；用途依村落祭仪而异，不向用户宣告真实诅咒。。特殊现象的视觉形态或承载方式：完整陶灯侧视，盖缝微光清楚，表面只有装饰凹槽，不画符文文字。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:11:14.423Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "western-frontier",
+      "id": "specialty:western-frontier:01",
+      "file": "western-frontier.webp",
+      "sourceName": "exec-67180dd4-a154-41e4-b82b-c2e1dd028199.png",
+      "sha256": "27865844ac114bdc4eaa1605dd5e6ee3defc4998e4b5a5d814ec163e00f50bc2",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：矿镇风声口哨。固定外观：一支卷曲的红铜小口哨系着磨旧皮绳，哨口旁压着一片浅色砂岩。。材质与可见特性：风穿过不同开孔产生两种高低音，铜面有细沙磨出的哑光，不依靠电源。。特殊现象的视觉形态或承载方式：口哨和皮绳为主体，极淡声波弧线点出声音，不画牛仔或铁路场景。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:13:25.233Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "dead-last-train",
+      "id": "specialty:dead-last-train:01",
+      "file": "dead-last-train.webp",
+      "sourceName": "exec-0b095b3f-2b3f-49b8-8a5a-34d4e2a2eacb.png",
+      "sha256": "745e1d166fd3240544444a6b32ede31869c9ed04cf06acb33ddc2a55868472f0",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：末班留声票夹。固定外观：一只窄长的旧银色票夹夹着无字的半透明薄片，夹口垂下一缕淡白雾。。材质与可见特性：薄片保存一小段已逝旅程的车轮回声，票夹触感冰凉，但不会真实决定用户去处。。特殊现象的视觉形态或承载方式：银色票夹与无字薄片完整展现，薄雾局限在夹口附近，不绘乘客或列车。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:13:26.642Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "endless-backrooms",
+      "id": "specialty:endless-backrooms:01",
+      "file": "endless-backrooms.webp",
+      "sourceName": "exec-9029c075-69e3-44ff-a7bf-e4634ea84baf.png",
+      "sha256": "8dcea0dbbbbc5a7ec1b38c9c19a9155112087ee99ccd49be97a6d619f4c3791c",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：回到原处的墙角。固定外观：两小片淡黄墙纸与一块灰绿地毯拼成巴掌大的房间拐角，接缝向里绕成不可能的小回路。。材质与可见特性：空间异常被限制在这块脱离建筑的局部样本，视线沿接缝走一圈会回到出发点。。特殊现象的视觉形态或承载方式：微型墙角完整置于白底，纸纹和地毯纤维可见，内部非欧接缝清楚，不扩展成整个走廊。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:13:27.975Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "eternal-night-vampire-castle",
+      "id": "specialty:eternal-night-vampire-castle:01",
+      "file": "eternal-night-vampire-castle.webp",
+      "sourceName": "exec-d8fed08f-d994-426b-9b08-fddc64464e40.png",
+      "sha256": "ff6d4dcddd9a25fba37a675b93185cbecd6b8f01d268c8273d27770be8f42b7e",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：无字月银契印。固定外观：一枚银黑色印环躺在暗红绒布小垫上，戒面刻着闭合的月牙与细枝图形。。材质与可见特性：月银随光线显露冷紫反射，印面只有图案；收藏本身不会让持有者自动加入任何契约。。特殊现象的视觉形态或承载方式：单枚印环与小绒垫展示完整，月牙图案没有可读符文或姓名。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:16:55.105Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "pirates-sea-monsters",
+      "id": "specialty:pirates-sea-monsters:01",
+      "file": "pirates-sea-monsters.webp",
+      "sourceName": "exec-683ec06a-dc64-4557-9efe-8a2642b12081.png",
+      "sha256": "f272ca4d410f966d7cd6640486362325c9e1850aa9142c7bc4edcb2e9df71700",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：逆风盐结罗盘。固定外观：一个缺了上盖的青铜航海罗盘，边缘生着乳白盐晶，指针分叉成细小的燕尾。。材质与可见特性：盐结来自风暴海路，指针在逆风时轻轻偏转，仍需要航海者结合当地风浪判断。。特殊现象的视觉形态或承载方式：罗盘完整斜置，盐晶、燕尾指针与无字刻度清楚，不画船、海盗或活海怪。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:16:56.387Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "superhero-city",
+      "id": "specialty:superhero-city:01",
+      "file": "superhero-city.webp",
+      "sourceName": "exec-5ab2a10d-709f-4eb9-9d75-0243ef00d6b5.png",
+      "sha256": "40babf31b0b55d2b5f6bbac123874f2cd3797199b494015b76e4154eaa6615aa",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：迟到五秒的影子。固定外观：一块圆角透明树脂片立在矮支架上，片内有一抹与外部光向略微错开的深蓝抽象影斑。。材质与可见特性：超能力事件留下的短暂现象被稳定在树脂片内，影斑只延后局部光照变化，不具意识。。特殊现象的视觉形态或承载方式：树脂片与支架为承载物，深蓝影斑边缘柔和，不能画人形轮廓或人物。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:16:57.657Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "disaster-island",
+      "id": "specialty:disaster-island:01",
+      "file": "disaster-island.webp",
+      "sourceName": "exec-626fa64d-ddff-4200-ad09-1a10c0e3902d.png",
+      "sha256": "275aef490ae7fb7a06cd5269e6c3d159228cb25a8f087cfbc3bf69727f6027b7",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：雨后集水折叶盘。固定外观：一只深绿的干叶折盘被细藤圈撑起，中央放着两颗透明水滴和一小枚圆石。。材质与可见特性：使用自然落叶干制，叶脉被压出导流沟，圆石用于压住容易被风掀起的一角。。特殊现象的视觉形态或承载方式：完整叶盘微斜展示沟槽和水滴，不画荒岛、旅人或活体植物。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:21:23.007Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "beast-contract-continent",
+      "id": "specialty:beast-contract-continent:01",
+      "file": "beast-contract-continent.webp",
+      "sourceName": "exec-7bf4af3f-c294-41ad-a3fc-68cf96a59afe.png",
+      "sha256": "f065c268422fa567ba402fbb870d03176a3e8bad78a575f4da7fb8c3635f917c",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：褪羽契绳结。固定外观：一枚由褪落羽片与棕色软绳结成的双环扣，中间夹着浅青色磨石。。材质与可见特性：羽片来自自然换羽而非活体赠送，两个绳环受力时互相分担，磨石上有长期摩擦的亮面。。特殊现象的视觉形态或承载方式：羽片、双环绳扣和磨石完整清晰，不画异兽、眼睛或契约文字。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:21:24.252Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "demon-king-hero-realm",
+      "id": "specialty:demon-king-hero-realm:01",
+      "file": "demon-king-hero-realm.webp",
+      "sourceName": "exec-b0f272f4-f8e9-46de-92de-e718911ac157.png",
+      "sha256": "faf32c4687e42e3f356f85b25eb25958cdbcb3678a01a7b5649da2d33491c34c",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：双面称号披扣。固定外观：一枚可翻转的铁金披风扣，一面是抽象尖角图案，一面是圆形日芒图案。。材质与可见特性：铁片与薄金包边留有不同磨痕，双面结构共用同一个铰链，图案不代表善恶。。特殊现象的视觉形态或承载方式：披扣以半翻转角度展示两面图形，不画人物、武器或名号文字。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:21:25.518Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "youth-campus",
+      "id": "specialty:youth-campus:01",
+      "file": "youth-campus.webp",
+      "sourceName": "exec-b08c6d25-f29b-41a9-9a76-952ac4e73e1c.png",
+      "sha256": "54d96ece74e65ce951cf1232d207e6e280bc0b2afb447ffeeb42a055f6dc2ea2",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：没投出的纸飞机。固定外观：一架用淡蓝方格纸折成的小飞机，机翼一边稍翘，尾部贴着一枚浅黄圆形纸贴。。材质与可见特性：方格线浅淡，纸面有反复展开又折回的痕迹，没有姓名、信文或现实联系方式。。特殊现象的视觉形态或承载方式：完整纸飞机轻轻斜放，折痕和无字贴纸清楚，纯白背景不出现教室。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:23:11.894Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "origami-landscape",
+      "id": "specialty:origami-landscape:01",
+      "file": "origami-landscape.webp",
+      "sourceName": "exec-688480ef-676b-4968-b703-18410c5a09a0.png",
+      "sha256": "aa429a2afed43ef35ba1e40141cf1a38e27030f5631d57199019a5bb10b0c7de",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：一折远山。固定外观：一张乳白厚纸折成山谷形小摆件，青绿纸层从谷底向上逐层展开，谷口有一道金色修补纸缝。。材质与可见特性：折合时山谷缩短，展开时内层道路图形延长，变化局限于纸面空间。。特殊现象的视觉形态或承载方式：展开一半的纸山完整可见，保留纸厚与层间阴影，不画生活角色或标签。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:23:13.127Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "page-turn-fairyland",
+      "id": "specialty:page-turn-fairyland:01",
+      "file": "page-turn-fairyland.webp",
+      "sourceName": "exec-44f177ab-2a56-4a68-8696-4a477a0afd15.png",
+      "sha256": "87320165139a33b80bbb956a7587f651bb95ed54896e62dd01a3496c99056df8",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：书脊落日角。固定外观：一枚由旧书页卷成的三角书角，内侧停着一小团像傍晚太阳的橙色柔光。。材质与可见特性：书角保存某一页地域残留的光照，不含火焰，翻面时柔光从纸层缝隙投出。。特殊现象的视觉形态或承载方式：纸角与内部柔光为唯一主体，书页纹理可见但完全无字，不画打开的大书场景。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:23:14.343Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "witch-candy-forest",
+      "id": "specialty:witch-candy-forest:01",
+      "file": "witch-candy-forest.webp",
+      "sourceName": "exec-90220a65-bc37-41f7-a367-9f572b827410.png",
+      "sha256": "b3e847aa5695bc59f7374bd394281c9cfca6be1b905e8e09b5ef0b022dcc8db4",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：改口薄荷糖。固定外观：三枚半透明冰绿色方糖躺在奶油白小碟里，每颗中央都有一个旋涡状气泡。。材质与可见特性：魔女依约制作的糖果，入口后会短暂改变虚构人物某个词的语气；具体条件附于剧情而非真实条款。。特殊现象的视觉形态或承载方式：三枚糖果与浅碟独立呈现，透光和内部气泡清楚，没有糖纸文字。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:26:08.098Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "giants-land",
+      "id": "specialty:giants-land:01",
+      "file": "giants-land.webp",
+      "sourceName": "exec-39f1063c-c520-4f7e-9658-63993d6c5da4.png",
+      "sha256": "5d33cc8d46361a934de7d221b6c5165db3b6125c5444bb48394283d6ce4de4ec",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：巨人衣襟扣。固定外观：一枚浅棕木质大衣扣占据画面主体，四个绳孔像小拱窗，孔内穿着一小截粗麻线。。材质与可见特性：木纹宽阔，边缘有巨人手指反复摩挲的光泽，麻线相对扣子仍显得粗壮。。特殊现象的视觉形态或承载方式：单颗完整木扣与短麻线展示厚度，不画巨人、手掌或尺子文字。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:26:09.345Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "inverted-gravity-continent",
+      "id": "specialty:inverted-gravity-continent:01",
+      "file": "inverted-gravity-continent.webp",
+      "sourceName": "exec-0e827dbb-d119-4436-a4db-df91ea65bd0c.png",
+      "sha256": "139753a137046389ba2dacb230e1ee37d289bca78c23f1716f6e86722f57d613",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：六向落雨滴。固定外观：一个透明六角框中悬着六枚细长水滴，各自沿不同方向拉出短短的尾迹。。材质与可见特性：框边稳定一处微型重力边界，水滴没有意识，不会改变框外房屋或用户身体的重力。。特殊现象的视觉形态或承载方式：六角框与六向水滴清楚展开，少量透明尾迹表现方向，不画天空大陆。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:26:10.614Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "underground-fungal-maze",
+      "id": "specialty:underground-fungal-maze:01",
+      "file": "underground-fungal-maze.webp",
+      "sourceName": "exec-3d5fee78-7a84-40aa-bbb4-f0a974eec490.png",
+      "sha256": "2891c6bf6c988da2fe69ba1fd8b9b42620cfdc28e4c7faf75a38b0b0db4ea60e",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：菌光矿尘囊。固定外观：一只薄透的灰白矿膜囊呈小梨形，内部悬着细小的蓝绿发光尘点，囊口以石纤维扎紧。。材质与可见特性：囊内是无活体孢子的矿物粉尘与惰性气体，发光来自附着的菌光残留，不可培育生物。。特殊现象的视觉形态或承载方式：矿膜囊完整悬置，蓝绿尘点疏密有别，不画蘑菇活体或洞穴背景。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:26:11.855Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "zombie-siege",
+      "id": "specialty:zombie-siege:01",
+      "file": "zombie-siege.webp",
+      "sourceName": "exec-c19a772b-f948-43cf-be35-78fe7f4df67f.png",
+      "sha256": "6b60139d7aa53f0f2c2a77c9a6d17de3fe59aa9b6e0d5d7724d86dd0c086032a",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：停电便利店冰袋。固定外观：一只雾蓝色布面保温袋敞开小口，内有两块淡青色密封冷却砖和一个空的小分隔格。。材质与可见特性：外布有修补线，冷却砖为普通无感染材料；袋内不放生物、血液或危险样本。。特殊现象的视觉形态或承载方式：保温袋与两块冷却砖完整展示，少量冷凝水表现使用痕迹，不画丧尸或标语。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:27:46.884Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "alternate-cold-war",
+      "id": "specialty:alternate-cold-war:01",
+      "file": "alternate-cold-war.webp",
+      "sourceName": "exec-fbbe4281-9de6-45e8-bbaa-e432c1edbdc3.png",
+      "sha256": "4a387ce47904823aef17d7e086c951d72a1747cbc0c65d07120edd614a86194c",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：两面都空的微缩胶卷。固定外观：一只磨砂黑胶卷筒半开，卷出一条深褐薄膜，薄膜在不同角度泛出青铜色。。材质与可见特性：表面检查时两面都显空白，特定虚构观察条件下才显露图形；收藏说明不包含真实窃密方法。。特殊现象的视觉形态或承载方式：胶卷筒和少量卷出薄膜清楚，图形只作抽象明暗，不画密码、地图文字或证件。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:27:48.106Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "wuxia-jianghu",
+      "id": "specialty:wuxia-jianghu:01",
+      "file": "wuxia-jianghu.webp",
+      "sourceName": "exec-bf337399-2edb-4ec5-a035-f2f60fefad16.png",
+      "sha256": "1732672cb0a7903bbb8e35292e460c9f2ef27fbde85a3ba209074ecd3e133237",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：归鞘风铃坠。固定外观：一枚细长的青铜铃坠系着深蓝剑穗，铃口内有一颗圆润白石，穗尾略微磨损。。材质与可见特性：挂在空鞘上移动时产生极轻的金石声，铃舌可用绳扣固定，声音不是神奇武学。。特殊现象的视觉形态或承载方式：完整铃坠和剑穗为主体，不画剑刃、武侠人物或门派文字。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:27:49.412Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "palace-succession",
+      "id": "specialty:palace-succession:01",
+      "file": "palace-succession.webp",
+      "sourceName": "exec-2ac447ac-e0d1-4f3f-8f0f-015e07b9ea36.png",
+      "sha256": "30d3e665d5b1a5ccba8b19fbfa6cde2b40622d924d852a83a723bf7fd5305021",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：错位宫灯珠。固定外观：一串三枚乳白瓷珠扣在小小的鎏金灯钩上，中间珠子稍小，串绳留着重新穿接的结。。材质与可见特性：瓷面有细开片，珠与灯钩的规格并不完全相同，差异源自一次调换或修补。。特殊现象的视觉形态或承载方式：三枚瓷珠与小灯钩完整展示，金属细节清楚，不画宫殿、人像或印文。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:29:19.353Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "magic-academy",
+      "id": "specialty:magic-academy:01",
+      "file": "magic-academy.webp",
+      "sourceName": "exec-660cb84f-b409-4dfc-9b1b-359092dca0f4.png",
+      "sha256": "a0a4a46fcf69dd216a72950a7166771174c6d13d60b006bf2d0965da7604b80b",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：失重半秒粉笔。固定外观：一截短短的淡紫粉笔悬在素白小托上，折断处露出银白细点，下方落着少量粉末。。材质与可见特性：施法练习留下的效应让它间歇抬起极短距离，持续时间有限，不会自行书写或产生生命。。特殊现象的视觉形态或承载方式：完整粉笔短截、托片和少量粉末清晰可辨，不出现文字、公式或人物。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:29:20.596Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    },
+    {
+      "worldCaseId": "infinite-trial-space",
+      "id": "specialty:infinite-trial-space:01",
+      "file": "infinite-trial-space.webp",
+      "sourceName": "exec-290e0628-74d3-4c12-84e8-9f2d6ce8e51d.png",
+      "sha256": "1e481a5554d8514266baf06c18168fa6ba1ab077a8b547e30abbfa35f382d807",
+      "prompt": "为收藏品图鉴绘制一张二次元动漫风格的游戏物品插画。纯白背景，完整清晰地展示主体。物品名称：过关后没消失的门把手。固定外观：一只磨亮的青灰色门把手连着一小片白色门板，断面像多层压在一起的薄瓷片。。材质与可见特性：上一阶段的实体残片被带回中枢，握柄留下温差形成的淡淡虹彩，不含活物或任务界面。。特殊现象的视觉形态或承载方式：门把手与小门板残片为独立收藏主体，不画完整门、界面、倒计时或人物。。构图与光影用于表现该物品，保留完整轮廓与适当留白。画面不含文字、标题、编号或水印，不画旅行角色、NPC或送达现场；收藏物本身是灵魂/现象时按其定义表现主体。1:1画幅，单件完整主体，适于缩略图辨认。",
+      "createdAt": "2026-11-11T15:29:21.820Z",
+      "review": "subject/style/complete-outline/no-text checked visually"
+    }
+  ]
+}

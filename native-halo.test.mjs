@@ -61,7 +61,7 @@ foreach($point in @(@(36,36),@(20,36),@(36,20),@(36,52),@(52,36))) {
     Assert ($null -ne $hit -and $window.FindName('OrbHitSurface').IsHitTestVisible) 'orb interior has no hit surface'
 }
 $lit=0; for($i=3;$i -lt $pixels.Length;$i+=4) { if($pixels[$i] -gt 10){$lit++} }; Assert ($lit -gt 100) 'ring did not render'
-foreach($name in @('NewsTab','LetterTab','Interfere','Reply')) { $b=$window.FindName($name); Assert ($null -ne $b -and $b.ActualWidth -gt 20 -and $b.ActualHeight -gt 20) ('button not laid out: '+$name) }
+foreach($name in @('NewsTab','LetterTab','TodayTab','TomorrowTab')) { $b=$window.FindName($name); Assert ($null -ne $b -and $b.ActualWidth -gt 20 -and $b.ActualHeight -gt 20) ('button not laid out: '+$name) }
 $script:state=[pscustomobject]@{ currentWorld='宋朝'; contextKey='song-context'; allowLetters=$true; interactionAvailable=$true; generation=@{state='idle'}; news=@{headline='宋朝新见闻';summary='宋朝内容';source=@{day='2026-11-08';issueId='issue-new'}}; latestLetter=@{id='2026-11-08-1234abcd';title='信';items=@(@{world='宋朝';text='新信'});sourceIssueId='letter-issue'} }
 Update-DesktopContent
 Assert ($headline.Text -eq '宋朝新见闻') 'news not applied'
@@ -76,8 +76,20 @@ foreach($name in @('Reply','Interfere')) {
     $window.FindName($name).RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent))
 }
 Assert (($script:opened -join ',') -eq 'reply,interfere') 'action buttons open wrong editor modes'
+$script:state | Add-Member NoteProperty storyContext @{scopeKey='scope1';version='v1';valid=$true;world='宋朝'}
+$storyDialog=New-StoryEditor 'today'
+Set-StoryOptions $storyDialog @{version='v1';scopeKey='scope1';choices=@(@{id='A';text='走到渡口'},@{id='B';text='与店主交谈'},@{id='C';text='一封信抵达'})}
+Assert (-not $storyDialog.FindName('StoryContinue').IsEnabled) 'story starts selected'
+$storyDialog.FindName('ChoiceA').RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent))
+Assert (-not $storyDialog.FindName('StoryCustom').IsEnabled -and $storyDialog.Tag.Choice -eq 'A') 'option does not exclude custom'
+$storyDialog.FindName('StoryReset').RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.Button]::ClickEvent))
+$storyDialog.FindName('StoryCustom').Text='自己定义剧情'
+Assert (-not $storyDialog.FindName('ChoiceB').IsEnabled -and $storyDialog.Tag.Source -eq 'custom') 'custom does not exclude options'
+Assert (-not $storyDialog.FindName('StoryCustom').AcceptsReturn) 'story custom is not single line'
+Assert ($storyDialog.FindName('StoryHint').Text -eq '你想说什么就立即会发生什么。') 'story hint incorrect'
+$storyDialog.Close()
 $dialog=New-InteractionEditor 'reply'
-Assert ($dialog.FindName('EditorHint').Text -like '让您的角色*') 'reply guidance missing'
+Assert ($dialog.FindName('EditorHint').Text -eq '你想立刻让你的角色做什么？') 'reply guidance missing'
 Assert ($dialog.FindName('EditorText').AcceptsReturn -and $dialog.FindName('EditorText').MaxLength -eq 4000) 'editor not multiline/limited'
 $dialog.FindName('EditorText').Text='  '
 Submit-Interaction $dialog
@@ -98,8 +110,8 @@ Assert ($headline.Text -eq '等待本次世界简报…' -and $summary.Text -not
 Assert ($window.FindName('CurrentWorld').Text -like '*观察2077*') 'world not shown'
 Assert ($window.FindName('Reply').Visibility -eq 'Collapsed' -and $window.FindName('Interfere').IsEnabled) 'observer action rules wrong'
 Assert ($window.FindName('LetterText').Text -notlike '*新信*') 'stale letter retained'
-$dialog=New-InteractionEditor 'interfere'; Assert ($dialog.FindName('EditorHint').Text -like '您可以尽情发挥*') 'interference guidance missing'
-Assert ($dialog.FindName('EditorHint').Text -like '*选择帮奴隶们*' -and $dialog.FindName('EditorHint').Text -notlike '*帮该*') 'redundant character in guidance'
+$dialog=New-InteractionEditor 'interfere'; Assert ($dialog.FindName('EditorHint').Text -eq '你想立刻对世界做什么？') 'interference guidance missing'
+Assert ($dialog.FindName('EditorHint').Text -notlike '*帮该*') 'redundant character in guidance'
 $script:failSubmit=$true; $dialog.FindName('EditorText').Text='改变世界'; Submit-Interaction $dialog
 Assert ($dialog.FindName('EditorStatus').Text.Length -gt 0 -and $dialog.FindName('EditorSubmit').IsEnabled) 'request error not recoverable'
 Set-View 'letters'
@@ -116,7 +128,7 @@ foreach($dpiCase in $dpiCases) {
     Update-WidgetSizing $area
     $root.Measure([Windows.Size]::new($area.Width,$area.Height)); $root.Arrange([Windows.Rect]::new(0,0,$root.DesiredSize.Width,$root.DesiredSize.Height)); $root.UpdateLayout()
     Assert ($root.ActualWidth -le $area.Width+0.1 -and $root.ActualHeight -le $area.Height+0.1) ('widget exceeds logical work area at '+$caseLabel+': '+$root.ActualWidth+'x'+$root.ActualHeight+' vs '+$area.Width+'x'+$area.Height)
-    foreach($name in @('NewsTab','LetterTab','Interfere','Reply')) {
+    foreach($name in @('NewsTab','LetterTab','TodayTab','TomorrowTab')) {
         $button=$window.FindName($name); $p=$button.TranslatePoint([Windows.Point]::new(0,0),$root)
         Assert ($p.X -ge 0 -and $p.Y -ge 0 -and $p.X+$button.ActualWidth -le $root.ActualWidth+0.1 -and $p.Y+$button.ActualHeight -le $root.ActualHeight+0.1) ('action off-screen at '+$caseLabel+': '+$name)
     }
@@ -139,7 +151,7 @@ foreach($dpiCase in $dpiCases) {
 $area=[Windows.Rect]::new(-500,20,280,460); Update-WidgetSizing $area
 $root.Measure([Windows.Size]::new($area.Width,$area.Height)); $root.Arrange([Windows.Rect]::new(0,0,$root.DesiredSize.Width,$root.DesiredSize.Height)); $root.UpdateLayout()
 Assert ($root.ActualWidth -le 280 -and $root.ActualHeight -le 460) 'narrow work area exceeded'
-foreach($name in @('NewsTab','LetterTab','Interfere','Reply')) { $button=$window.FindName($name); $p=$button.TranslatePoint([Windows.Point]::new(0,0),$root); Assert ($p.X+$button.ActualWidth -le 280 -and $p.Y+$button.ActualHeight -le 460) ('wrapped action clipped: '+$name) }
+foreach($name in @('NewsTab','LetterTab','TodayTab','TomorrowTab')) { $button=$window.FindName($name); $p=$button.TranslatePoint([Windows.Point]::new(0,0),$root); Assert ($p.X+$button.ActualWidth -le 280 -and $p.Y+$button.ActualHeight -le 460) ('wrapped action clipped: '+$name) }
 $position=Get-ClampedPosition 0 9999 $root.ActualWidth $root.ActualHeight $area
 Assert ($position.X -eq $area.Left -and $position.Y+$root.ActualHeight -le $area.Bottom) 'offset work-area origin ignored'
 foreach($area in @([Windows.Rect]::new(0,0,1920/3.5,1040/3.5),[Windows.Rect]::new(-500,20,280,460))) {

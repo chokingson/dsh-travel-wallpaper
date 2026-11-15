@@ -1,3 +1,8 @@
+import {createSpecialties} from './specialties.js';
+import {createWorldVisits} from './world-visits.js';
+import {createStoryOptions,storyScope,storyVersion} from './story-options.js';
+import {recoverAuthorizedTasks} from './auth-recovery.js';
+import {activeParty,referenceBindings,normalizeParty,partyDescription} from './party.js';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -11,10 +16,13 @@ import { setTimeout as wait } from 'node:timers/promises';
 import { promisify } from 'node:util';
 import manifest from './package.json' with { type: 'json' };
 import { createAboutSupport } from './about-support.js';
-import { styles, worlds, resolutions, configDefaults, normalizeConfig, promptParts, splitPrompt, randomWorld } from './catalog.js';
+import {createTaskStore,scheduleDay,scheduleAt,nextDailyTime,taskSummary,safeTaskError} from './scheduled-tasks.js';
+import {renderComfy} from './comfy-render.js';
+import {recoverCloudImage} from './cloud-render-recovery.js';
+import { defaultStyle, styles, worlds, resolutions, configDefaults, normalizeConfig, promptParts, splitPrompt, randomWorld } from './catalog.js';
 import { prepareImage, publishNative, publishLockScreen } from './desktop.js';
 import { saveReference, readReference, characters } from './references.js';
-import { effectiveConfig, compilePrompt, generateWorld, readPromptSkill, placeholders, carriers } from './prompt-skills.js';
+import { effectiveConfig, compilePrompt, generateWorld, readPromptSkill, placeholders, carriers, streamText } from './prompt-skills.js';
 import { createChannels } from './channels.js';
 import { readWorldArchive } from './archive.js';
 import { imageCharacters, characterFilters } from './character-tags.js';
@@ -29,6 +37,7 @@ import { createRequestGuard } from './request-guard.js';
 import { createTripComposer, tripCatalog, tripFields } from './trip-composer.js';
 import { timeTags } from './world-cases.js';
 import { nextTripEvent } from './trip-events.js';
+import {writeStoryOutcome,sceneDescription,commitStoryOutcome} from './story-outcome.js';
 import { createTravelActions } from './travel-actions.js';
 import { createConfigMutator } from './config-store.js';
 import { createDesktopWidget } from './native-widget.js';
@@ -38,13 +47,13 @@ const base = '/api/planet-news';
 const studioPath = '/plugins/dsh-image-gen/studio';
 const cloudChannels = ['chatgpt-sub', 'google-sub', 'seedream', 'openai', 'openai-compatible', 'google'];
 const defaults = {
-  enabled: false, hour: 6, days: 30, world: '穿越三国', rules: '带着大肥鱼去不同的世界旅行，每天发生一件新趣事。', style: styles[0].prompt,
+  enabled: false, hour: 6, days: 30, world: '穿越三国', rules: '带着大肥鱼去不同的世界旅行，每天发生一件新趣事。', style: defaultStyle.prompt,
   keywords: '兽装，兽展，兽聚', comfy: 'http://127.0.0.1:8388',
   textProvider: 'deepseek-account', textModel: 'deepseek-flash', wallpaperExe: '', topicFile: '', imageChannel: 'chatgpt-sub', imageQuality: 'default', downloadDirectory: '',syncLockScreen:true,
   presentation: 'illustration', sourceMode: 'world', characters: 'DeepSeek鲸鱼娘（蓝发、头鳍、鲸尾）', ...configDefaults,
 };
 
-const dayKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const dayKey = scheduleDay;
 const readJson = async (file, fallback) => {
   try { return JSON.parse((await readFile(file, 'utf8')).replace(/^\uFEFF/, '')); }
   catch (error) { if (error.code === 'ENOENT') return fallback; throw error; }
@@ -64,10 +73,13 @@ export function selectStory(stories, used, days, now) {
   }).sort((a, b) => storyTime(b) - storyTime(a))[0];
 }
 
-async function issueHistory(dir) {
+const usedStoryUrls = history => history.flatMap(record => [record?.story?.url,
+  ...(record?.images || []).map(picture => picture.story?.url)]).filter(Boolean);
+
+async function issueHistory(dir,{all=false}={}) {
   const files = (await readdir(dir)).filter(file => /^\d{4}-\d\d-\d\d(?:-[a-f\d]+)?\.json$/.test(file));
-  const issues = await Promise.all(files.map(file => readJson(join(dir, file), null)));
-  return issues.filter(Boolean).sort((a, b) => (b.createdAt ?? Date.parse(b.day)) - (a.createdAt ?? Date.parse(a.day))).slice(0, 60);
+  const issues = await Promise.all(files.map(file => readJson(join(dir, file), null).catch(error=>{if(error instanceof SyntaxError)return null;throw error;})));
+  return issues.filter(record=>record&&typeof record==='object'&&!Array.isArray(record)).sort((a, b) => (b.createdAt ?? Date.parse(b.day)) - (a.createdAt ?? Date.parse(a.day))).slice(0,all?undefined:60);
 }
 
 export function splitCharacters(value = '') {
@@ -82,12 +94,12 @@ export function splitCharacters(value = '') {
   return result;
 }
 function worldStory(config, history, day) {
-  const characters = config.rolesEnabled===false?[]:splitCharacters(config.characters || '');
+  const characters = config.rolesEnabled===false?[]:Array.isArray(config.party)?[partyDescription(activeParty(config))]:splitCharacters(config.characters || '');
   const previous = history[0]?.story;
   const previousIndex = characters.findIndex(item => item === previous?.character || previous?.title?.includes(item));
   const character = characters.length ? characters[(previousIndex + 1) % characters.length] : '';
   const worldEvent=nextTripEvent(config,history,day);
-  return { title: [config.world, character, day].filter(Boolean).join(' · '), character, dateKind: 'fiction', publishedAt: day,...(worldEvent?{worldEvent,excerpt:worldEvent.instructions}:{}),...(config.travelRevision?{sceneRevision:config.travelRevision,excerpt:(worldEvent?.instructions||'')+'\n这是用户明确重新制作的一次旅行。即使日期相同，也要按当前参数重新构思新事件，不照搬最近画面。抽取编号：'+config.travelRevision}:{}) };
+  return { title: [config.world, character, day].filter(Boolean).join(' · '), character, dateKind: 'fiction', publishedAt: day,...(worldEvent?{worldEvent,excerpt:worldEvent.instructions}:{}),...(config.travelRevision?{sceneRevision:config.travelRevision,excerpt:(worldEvent?.instructions||'')+'\n本次提交编号：'+config.travelRevision}:{}) };
 }
 
 function issueImage(record) {
@@ -95,12 +107,13 @@ function issueImage(record) {
   return record.imageFile || `${record.day}.png`;
 }
 
-export function createDailyJob({ dir, collect, writePrompt, render, publish, writeDiary, now = () => new Date(), progress = () => {} }) {
+export function createDailyJob({ dir, collect, writePrompt, render, publish, writeDiary, writeEvent, now = () => new Date(), progress = () => {} }) {
   let running;const narrative=createDailyNarrative(join(dir,'daily'));
-  return { run(config, { force = false, prepare = false, issueId: requestedIssueId } = {}) {
+  return { run(config, { force = false, prepare = false, issueId: requestedIssueId,signal,guard } = {}) {
     if (running) return running;
     running = (async () => {
-      await mkdir(dir, { recursive: true });
+      const check=async()=>{signal?.throwIfAborted();if(guard&&!await guard())throw Object.assign(Error('当前世界或角色已变化，旧任务已停止'),{code:'CONTEXT_CHANGED'});};
+      await check();await mkdir(dir, { recursive: true });
       const lockFile = join(dir, 'running.lock');
       let lock;
       try { lock = await open(lockFile, 'wx'); }
@@ -125,13 +138,13 @@ export function createDailyJob({ dir, collect, writePrompt, render, publish, wri
         const latest = await readJson(join(dir, 'latest.json'), null);
         if(requestedIssueId&&!/^\d{4}-\d\d-\d\d(?:-[a-f\d]{8})?$/.test(requestedIssueId))throw Error('制作批次无效');
         let record = requestedIssueId?await readJson(join(dir,requestedIssueId+'.json'),null):(latest?.day === day ? latest : await readJson(join(dir, `${day}.json`), null));
-        if (record?.state === 'published' && !force&&!prepare) return record;
+        if (record?.state === 'published' && !force) return record;
         if (force) record = null;
         let issueId = record?.issueId || requestedIssueId || day;
         if (!record && force&&!requestedIssueId) issueId = `${day}-${randomBytes(4).toString('hex')}`;
         const recordFile = join(dir, `${issueId}.json`);
-        if (!record) record = { day, issueId, narrativeId:issueId, createdAt: today.getTime(), state: 'creating', images: [],
-          targetCount: config.dailyCount || 1, recipe: { ...config }, settings: { world: config.world, rules: config.rules, style: config.style, presentation: config.presentation, sourceMode: config.sourceMode } };
+        if (!record) record = { day, issueId, narrativeId:issueId, createdAt: today.getTime(), state: 'creating', images: [],specialtyRequested:config.specialtiesEnabled!==false,
+          targetCount: config.dailyCount || 1, recipe: structuredClone(config), settings: { world: config.world, rules: config.rules, style: config.style, presentation: config.presentation, sourceMode: config.sourceMode } };
         const storedRecipe = record.recipe || config;
         const rawRecipe = { ...storedRecipe, rolesEnabled:config.rolesEnabled??storedRecipe.rolesEnabled??true,
           imageToImage:config.imageToImage??storedRecipe.imageToImage??false,referenceId:config.referenceId??storedRecipe.referenceId??'',referenceInstructions:config.referenceInstructions??storedRecipe.referenceInstructions??'' };
@@ -139,10 +152,10 @@ export function createDailyJob({ dir, collect, writePrompt, render, publish, wri
         if(prepare&&rawRecipe.rolesEnabled!==false)rawRecipe.diaryEnabled=true;
         const rolesChanged=(storedRecipe.rolesEnabled!==false)!==(rawRecipe.rolesEnabled!==false);
         for(const key of Object.values(observerFields)) if(key in config)rawRecipe[key]=config[key];
-        if(rolesChanged)for(const key of ['characters','textPrompt','topic','tags','rules','extraPrompt','textContent','diaryEnabled','diaryTitle'])if(key in config)rawRecipe[key]=config[key];
+        if(rolesChanged)for(const key of ['party','characters','textPrompt','topic','tags','rules','extraPrompt','textContent','diaryEnabled','diaryTitle'])if(key in config)rawRecipe[key]=config[key];
         const was=effectiveConfig({...storedRecipe,imageToImage:storedRecipe.imageToImage??Boolean(storedRecipe.referenceId)});
         const recipe=effectiveConfig(rawRecipe);
-        const changed=rolesChanged||Boolean(was.imageToImage)!==Boolean(recipe.imageToImage)||(recipe.imageToImage&&(was.referenceId!==recipe.referenceId||was.referenceInstructions!==recipe.referenceInstructions));
+        const changed=JSON.stringify(was.party)!==JSON.stringify(recipe.party)||rolesChanged||Boolean(was.imageToImage)!==Boolean(recipe.imageToImage)||(recipe.imageToImage&&(was.referenceId!==recipe.referenceId||was.referenceInstructions!==recipe.referenceInstructions));
         if(record.pending&&changed)delete record.pending;
         if (!record.images) record.images = [{ imageFile: issueImage(record), story: record.story, prompt: record.prompt, style: record.settings?.style || '', styleId: record.settings?.styleId || 'custom' }];
         for(const picture of record.images) if(picture.rolesEnabled===undefined)picture.rolesEnabled=storedRecipe.rolesEnabled!==false;
@@ -154,44 +167,58 @@ export function createDailyJob({ dir, collect, writePrompt, render, publish, wri
         const target = record.targetCount || 1;
         if (!Number.isInteger(target) || target < 1 || target > 20) throw new Error('每日张数须为 1–20');
         while (record.images.length < target) {
+          await check();
           const history = (await issueHistory(dir)).filter(item => (item.issueId || item.day) !== issueId);
-          const previous = [...record.images].reverse().map(picture=>({...picture,day,recipe:rawRecipe,images:[picture]})).concat(history.flatMap(item => item.images?.length ? [...item.images].reverse().map(picture=>({...picture,day:item.day,recipe:item.recipe,settings:item.settings,images:[picture]})) : [item]));
+          const previous = record.images.map((picture,index)=>({...picture,day,issueId,index,state:'rendered',recipe:rawRecipe,images:[picture]})).reverse().concat(history);
           const story = record.pending?.story || (recipe.sourceMode === 'world' ? worldStory(recipe, previous, day)
-            : selectStory(await collect(recipe), previous.map(item => item?.story?.url), recipe.days, today));
+            : selectStory(await collect(recipe), usedStoryUrls(previous), recipe.days, today));
+          if(story&&recipe.nextDayPlan)story.nextDayPlan=recipe.nextDayPlan;
           if (!story) {
             if (!record.images.length) return { day, state: 'no-story' };
             throw new Error(`已保存 ${record.images.length}/${target} 张，暂时没有更多合适选题；稍后续做`);
           }
-          progress({ state: 'running', stage: 'generating', completed: record.images.length, total: target, day });
+          await progress({ state: 'running', stage: 'prompt', completed: record.images.length, total: target, day });
           // Keep an in-progress prompt on disk: a render retry must not rewrite the scene.
-          if (!record.pending) { record.pending = await narrative.plan(day,planKey({...recipe,characters:story.character||recipe.characters}),async plot=>{
-            const scene={...story};if(plot){scene.dailyPlot=plot.worldEvent?.event||plot.title;scene.excerpt=(scene.excerpt||'')+'\n同一批次事件：'+scene.dailyPlot+'。仅本批轮播图沿用事件，其它重新制作使用新事件。';}
-            return {story:scene,prompt:await writePrompt(scene,recipe,previous.slice(0,4))};},record.narrativeId||day);await save(); }
+          if (!record.pending) {
+            const sourceKey=recipe.sourceMode==='world'?'':':'+(story.url||story.title);
+            const outcome=writeEvent?await narrative.event(day,planKey(recipe)+sourceKey,async()=>({id:issueId,world:recipe.world||'',era:recipe.era||'',characters:story.character||recipe.characters||'',status:'prepared',description:await writeEvent(story,recipe,previous,{signal}),...(Array.isArray(story.depictedMemberIds)?{depictedMemberIds:story.depictedMemberIds}:{})}),record.narrativeId||day):null;
+            await check();
+            record.pending = await narrative.plan(day,planKey({...recipe,characters:story.character||recipe.characters})+sourceKey,async plot=>{
+              const scene={...story,...(outcome?{storyOutcome:outcome}:{})};
+              if(plot&&recipe.sourceMode==='world'){scene.dailyPlot=plot.storyOutcome?.description||plot.worldEvent?.event||plot.title;scene.excerpt=(scene.excerpt||'')+'\n同一批次事件：'+scene.dailyPlot+'。';}
+              return {story:scene,prompt:await writePrompt(scene,recipe,previous.slice(0,4))};
+            },record.narrativeId||day);await save();
+          }
           const { story: pendingStory, prompt } = record.pending;
-          const rendered = await render(prompt, recipe);
+          await check();await progress({state:'running',stage:'image',completed:record.images.length,total:target,day});
+          const cacheFile=join(dir,issueId+'-pending-'+record.images.length+'.bin');
+          const rendered = await render(prompt, recipe,{signal,resume:record.pending.renderState,cacheFile,checkpoint:async remote=>{record.pending.renderState=remote;await save();}});
           const image = Buffer.isBuffer(rendered) ? rendered : rendered.bytes;
           const suffix = record.images.length ? `-${(record.images.length + 1).toString(16).padStart(2, '0')}` : '';
           const imageFile = `${issueId}${suffix}.${imageExtension(image)}`;
           await atomicWrite(join(dir, imageFile), image);
-          record.images.push({ imageFile, story: pendingStory, prompt, promptParts: splitPrompt(prompt, recipe.style),
+          record.images.push({ imageFile, story: pendingStory, storyOutcome:pendingStory.storyOutcome||{id:issueId,world:recipe.world||'',era:recipe.era||'',characters:pendingStory.character||recipe.characters||'',status:'prepared',description:sceneDescription(prompt)}, prompt, promptParts: splitPrompt(prompt, recipe.style),
             style: recipe.style || '', styleId: recipe.styleId || 'custom', width: rendered.width || recipe.width,
             height: rendered.height || recipe.height, originalWidth: rendered.originalWidth, originalHeight: rendered.originalHeight,
-            contextKey:deliveryContextKey(recipe),referenceId: recipe.imageToImage?recipe.referenceId||'':'', referenceInstructions: recipe.referenceInstructions || '', world:recipe.world || '', era:recipe.era || '',rolesEnabled:recipe.rolesEnabled!==false,characterIds:imageCharacters({story:pendingStory,rolesEnabled:recipe.rolesEnabled!==false},{recipe}) });
+            ...(Array.isArray(recipe.party)?{party:structuredClone(recipe.party),participantIds:recipe.party.map(actor=>actor.id),depictedMemberIds:Array.isArray(pendingStory.storyOutcome?.depictedMemberIds)?pendingStory.storyOutcome.depictedMemberIds:Array.isArray(recipe.depictedMemberIds)?recipe.depictedMemberIds.filter(id=>recipe.party.some(actor=>actor.id===id)):recipe.party.map(actor=>actor.id)}:{}),contextKey:deliveryContextKey(recipe),referenceId: recipe.imageToImage?recipe.referenceId||'':'', referenceInstructions: recipe.referenceInstructions || '', world:recipe.world || '', era:recipe.era || '',rolesEnabled:recipe.rolesEnabled!==false,characterIds:imageCharacters({story:pendingStory,rolesEnabled:recipe.rolesEnabled!==false},{recipe}) });
           const first = record.images[0];
-          Object.assign(record, { imageFile: first.imageFile, story: first.story, prompt: first.prompt });
+          Object.assign(record, { imageFile: first.imageFile, story: first.story, storyOutcome:first.storyOutcome, prompt: first.prompt });
           delete record.pending;
           record.state = record.images.length === target ? 'rendered' : 'creating';
           await save();
+          await unlink(cacheFile).catch(error=>{if(error.code!=='ENOENT')throw error;});
         }
-        progress({ state: 'running', stage: 'applying', completed: target, total: target, day });
+        await check();await progress({ state: 'running', stage: 'applying', completed: target, total: target, day });
         const files = record.images.map(item => join(dir, issueImage({ ...item, day })));
-        const publication=await publish(files.length === 1 ? files[0] : files, { ...config, dailyCount: files.length });if(publication?.lockScreen)record.lockScreen=publication.lockScreen;
+        const publication=await publish(files.length === 1 ? files[0] : files, { ...config, dailyCount: files.length },{signal,guard});if(publication?.lockScreen)record.lockScreen=publication.lockScreen;
+        const appliedAt = now().getTime();
+        commitStoryOutcome(record,appliedAt);
         record.state = 'published';
-        record.appliedAt = Date.now();
+        record.appliedAt = appliedAt;
         await save();
-        if(writeDiary && recipe.rolesEnabled!==false && recipe.imageToImage!==false && recipe.diaryEnabled!==false) for(const picture of record.images) {
+        if(writeDiary && recipe.rolesEnabled!==false && (Array.isArray(recipe.party)||recipe.imageToImage!==false) && recipe.diaryEnabled!==false) for(const picture of record.images) {
           if(picture.diary||picture.diaryDay||picture.diaryIssueId||picture.diaryError||imageCharacters(picture,record).includes('none'))continue;
-          progress({state:'running',stage:'diary',completed:target,total:target,day});
+          await check();await progress({state:'running',stage:'diary',completed:target,total:target,day});
           try { const result=await narrative.diary(day,()=>writeDiary(picture,recipe),record.narrativeId||day);if(result.created)picture.diary=result.diary;else if(record.narrativeId)picture.diaryIssueId=record.narrativeId;else picture.diaryDay=day; }
           catch { picture.diaryError='日记暂未写成，可在图片详情中重试；成图已保留。'; }
           await save();
@@ -304,33 +331,8 @@ function imageExtension(bytes) {
   throw new Error('生成结果不是可用的 PNG、JPEG 或 WebP');
 }
 
-export async function render(prompt, config) {
-  const origin = loopback(config.comfy);
-  const graph = JSON.parse(await readFile(new URL('./moss-workflow.json', import.meta.url), 'utf8'));
-  graph['25'].inputs.text = prompt;
-  graph['16'].inputs.seed = randomBytes(6).readUIntBE(0, 6);
-  const signal = AbortSignal.timeout(300_000);
-  const getJson = async (path, init) => {
-    const response = await fetch(origin + path, { ...init, signal });
-    if (!response.ok) throw new Error(`ComfyUI ${path} HTTP ${response.status}: ${(await response.text()).slice(0, 400)}`);
-    return response.json();
-  };
-  const { prompt_id: id } = await getJson('/prompt', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prompt: graph }) });
-  if (!id) throw new Error('ComfyUI 未返回任务 ID');
-  for (;;) {
-    const result = (await getJson(`/history/${encodeURIComponent(id)}`))[id];
-    const image = result?.outputs?.['13']?.images?.[0];
-    if (image) {
-      const params = new URLSearchParams({ filename: image.filename, subfolder: image.subfolder, type: image.type });
-      const response = await fetch(`${origin}/view?${params}`, { signal });
-      if (!response.ok) throw new Error(`ComfyUI 图片下载失败（${response.status}）`);
-      const bytes = Buffer.from(await response.arrayBuffer());
-      if (bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') throw new Error('ComfyUI 输出不是 PNG');
-      return bytes;
-    }
-    if (result?.status?.completed || result?.status?.status_str === 'error') throw new Error('ComfyUI 任务没有产出图片，请检查 ComfyUI 日志');
-    await wait(1000, undefined, { signal });
-  }
+export async function render(prompt, config, options = {}) {
+  return renderComfy(prompt,config,options);
 }
 
 function launchBackground(file, args, options) {
@@ -456,10 +458,12 @@ export async function discoverEngine(origin, { ambient = true, steamRoots = [] }
 export const name = 'planet-news';
 export const inject = ['webServer', 'llm', 'credentials'];
 
-export function apply(ctx, _options, publisher = publishWallpaper, desktopFactory = createDesktopWidget, lockScreenPublisher = publisher===publishWallpaper?publishLockScreen:async()=>({state:'skipped'}), imageRenderer = null) {
+export function apply(ctx, _options, publisher = publishWallpaper, desktopFactory = createDesktopWidget, lockScreenPublisher = publisher===publishWallpaper?publishLockScreen:async()=>({state:'skipped'}), imageRenderer = null, runtime = {}) {
+  const clock=runtime.now||(()=>new Date());
+  const taskStore=createTaskStore({directory:join(process.env.DSH_HOME||join(homedir(),'.dsh'),'planet-news'),now:clock});
   const aboutSupport = createAboutSupport();
   const requestGuard=createRequestGuard();
-  const channels = createChannels(ctx);
+  const channels = createChannels(ctx,{onAuthorized:provider=>recoverAuthorization(provider)});
   let randomizing = false;
   const dshHome = process.env.DSH_HOME || join(homedir(), '.dsh');
   const dir = join(dshHome, 'planet-news');
@@ -468,6 +472,7 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
   const referenceLibrary=createReferenceLibrary(referenceDirectory);
   const dailyNarrative=createDailyNarrative(join(dir,'issues','daily'));
   const readArchive=options=>readWorldArchive(join(dir,'issues'),{...options,referenceLibrary});
+  const worldVisits=createWorldVisits({directory:dir});
   async function prepareExport(query){
     const fail=(status,message)=>{throw Object.assign(new Error(message),{status});};
     if(query.has('download')){
@@ -483,7 +488,7 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
     const files=[];for(const picture of pictures){const issue=await readJson(join(dir,'issues',picture.issueId+'.json'),null),{picture:stored}=getImage(issue,picture.index),file=issueImage({...stored,day:issue.day});const path=join(dir,'issues',file),meta=picture.width&&picture.height?picture:await sharp(path).metadata();let name=wallpaperFileName({...picture,width:meta.width,height:meta.height},file.split('.').at(-1));const used=new Set(files.map(f=>f.name));if(used.has(name)){const dot=name.lastIndexOf('.');let n=2;while(used.has(name.slice(0,dot)+' ('+n+')'+name.slice(dot)))n++;name=name.slice(0,dot)+' ('+n+')'+name.slice(dot);}files.push({path,name});}
     return{name:'travel-'+worldId+'.zip',saveName:'旅行壁纸-'+pictures[0].world+'.zip',mediaType:'application/zip',stream:await wallpaperZip(files)};
   }
-  const trips=createTripComposer({dir,llm:ctx.llm});
+  const trips=createTripComposer({dir,llm:ctx.llm,now:clock});
   const resolveEngine = async config => {
     if (config.wallpaperExe && await stat(config.wallpaperExe).then(info => info.isFile(), () => false)) return config.wallpaperExe;
     return discoverEngine(ctx.webServer.getOrigin?.());
@@ -504,12 +509,29 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
       promptMode: stored.usePromptSkills === undefined ? 'llm' : stored.promptMode||(stored.usePromptSkills?'llm':'direct') });
   };
   const mutateConfig=createConfigMutator({read:getConfig,validate:next=>normalizeConfig({...next,downloadDirectory:normalizeDownloadDirectory(next.downloadDirectory)}),write:async next=>{await mkdir(dir,{recursive:true});await atomicWrite(configFile,JSON.stringify(next,null,2));}});
-  const travelActions=createTravelActions({directory:dir,composer:trips,getConfig,mutateConfig,saveConfig:next=>mutateConfig(()=>next),listWorlds:async()=>(await readArchive()).worlds.map(w=>w.name)});
-  const publishAll=async(file,config)=>{await publisher(file,config,join(dir,'wallpaper'));return{lockScreen:config.syncLockScreen===false?{state:'disabled'}:await lockScreenPublisher(file)};};
+  const travelActions=createTravelActions({directory:dir,composer:trips,getConfig,mutateConfig,taskStore,now:clock,saveConfig:next=>mutateConfig(()=>next),listWorlds:async()=>(await readArchive()).worlds.map(w=>w.name)});
+  const publishAll=async(file,config,{signal,guard}={})=>{signal?.throwIfAborted();if(guard&&!await guard())throw Object.assign(Error('当前行程已变化'),{code:'CONTEXT_CHANGED'});await publisher(file,config,join(dir,'wallpaper'));signal?.throwIfAborted();return{lockScreen:config.syncLockScreen===false?{state:'disabled'}:await lockScreenPublisher(file)};};
   const imagesOf = issue => issue.images || [{ imageFile: issueImage(issue), story: issue.story,referenceId:issue.referenceId||'',prompt: issue.prompt || '', style: issue.settings?.style || '', styleId: issue.settings?.styleId || 'custom' }];
-  const delivery=createDeliveryService({dir:join(dir,'delivery'),archive:()=>readArchive(),writeNews:(picture,config)=>writeWorldNews(ctx.llm,picture,config)});
-  const desktop=desktopFactory({origin:()=>ctx.webServer.getOrigin?.()});let deliveryError='';
-  const syncDelivery=async(options,executionConfig)=>{const config=effectiveConfig(executionConfig||await getConfig());await desktop.sync(config);try{await delivery.tick(config,options);deliveryError='';}catch{deliveryError='投递暂未完成，稍后会重试。';}};
+  const delivery=createDeliveryService({dir:join(dir,'delivery'),archive:()=>readArchive(),writeNews:(picture,config)=>writeWorldNews(ctx.llm,picture,config),now:clock});
+  const parseSpecialty=value=>{try{return JSON.parse(value.trim().replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,''));}catch{throw Error('特产资料未返回完整JSON，原有壁纸不受影响');}};
+  const specialtySkill=async name=>readFile(new URL('./skills/'+name+'/SKILL.md',import.meta.url),'utf8');
+  const specialties=createSpecialties({directory:join(dir,'collections'),now:clock,
+    design:async(input,{signal,config})=>parseSpecialty(await streamText(ctx.llm,(await specialtySkill('travel-specialty-design'))+'\n\n'+JSON.stringify(input),{...config,textAbortSignal:signal},1400)),
+    writeStory:async(input,{signal,config})=>parseSpecialty(await streamText(ctx.llm,(await specialtySkill('travel-specialty-delivery'))+'\n\n'+JSON.stringify(input),{...config,textAbortSignal:signal},1800)),
+    readAsset:async item=>{if(!item)return null;return readFile(new URL('./'+item.imageFile,import.meta.url)).catch(error=>{if(error.code==='ENOENT')return null;throw error;});},
+    render:async(prompt,config,context)=>imageRenderer?imageRenderer(prompt,config,null,context):config.imageChannel==='moss'?render(prompt,config,context):recoverCloudImage({channel:config.imageChannel,context,generate:()=>channels.generate(prompt,config,null),now:clock}),
+  });
+  let specialtyError='',specialtyPump=null;
+  const enqueueSpecialty=async record=>{await specialties.enqueue(record);record.specialtyQueuedAt=clock().toISOString();await atomicWrite(join(dir,'issues',(record.issueId||record.day)+'.json'),JSON.stringify(record,null,2));};
+  const pumpSpecialties=()=>{if(specialtyPump)return specialtyPump;specialtyPump=(async()=>{
+    // Only this version's explicit outbox markers are recovered; old archives do not receive backfill gifts.
+    const records=await issueHistory(join(dir,'issues'),{all:true}).catch(error=>{if(error.code==='ENOENT')return [];throw error;});
+    for(const record of records)if(record.state==='published'&&record.specialtyRequested&&!record.specialtyQueuedAt)await enqueueSpecialty(record);
+    await specialties.tick();specialtyError='';
+  })().catch(()=>{specialtyError='特产任务暂未完成，可在“特产”分页查看；壁纸更新不受影响。';}).finally(()=>{specialtyPump=null;});return specialtyPump;};
+  ctx.effect(()=>()=>specialties.dispose(),'planet-news: collectible cleanup');
+  const desktop=desktopFactory({origin:()=>ctx.webServer.getOrigin?.(),directory:join(dir,'widget')});let deliveryError='';
+  const syncDelivery=async(options,executionConfig)=>{const config=effectiveConfig(executionConfig||await getConfig());await desktop.sync(config);try{await delivery.tick(config,options);deliveryError='';}catch(error){deliveryError='投递暂未完成，稍后会重试。';if(options?.strict)throw error;}};
   ctx.effect(()=>()=>{desktop.dispose();delivery.dispose();},'planet-news: desktop delivery cleanup');
   const getImage = (issue, rawIndex = 0) => {
     const index = Number(rawIndex);
@@ -530,67 +552,154 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
     dir: join(dir, 'issues'), collect: config => collectStories(config, dshHome),
     writePrompt: composePrompt,
     writeDiary:(picture,config)=>writeTravelDiary(ctx.llm,picture,config),
-    render: async (prompt, config) => {
-      const reference = config.imageToImage && config.referenceId ? {...(await readReference(referenceDirectory, config.referenceId)).source,name:(await referenceLibrary.resolve(config.referenceId)).name} : null;
-      if (reference && config.imageChannel === 'moss') throw new Error('当前 MOSS 工作流不支持参考图，请选择支持图生图的渠道');
-      const bytes = imageRenderer?await imageRenderer(prompt,config,reference):config.imageChannel === 'moss' ? await render(prompt, config)
-        : await channels.generate(prompt, config, reference);
+    now:clock,
+    render: async (prompt, config, context={}) => {
+      const binding=referenceBindings(config);
+      const allReferences=await Promise.all(binding.map(async item=>({...((await readReference(referenceDirectory,item.referenceId)).source),actorId:item.actorId,referenceId:item.referenceId,name:item.name})));
+      const reference=Array.isArray(config.party)?allReferences.length?allReferences:null:allReferences[0]||null;
+      if(reference&&config.imageChannel==='moss')throw Error('当前 MOSS 工作流不支持参考图，请选择支持图生图的渠道');
+      let bytes=context.cacheFile?await readFile(context.cacheFile).catch(e=>{if(e.code==='ENOENT')return null;throw e;}):null;
+      if(!bytes){
+        if(imageRenderer)bytes=await imageRenderer(prompt,config,reference,context);
+        else if(config.imageChannel==='moss')bytes=await render(prompt,config,context);
+        else bytes=await recoverCloudImage({channel:config.imageChannel,context,generate:()=>channels.generate(prompt,config,reference),now:clock});
+        if((config.imageChannel==='moss'||imageRenderer)&&context.cacheFile)await atomicWrite(context.cacheFile,bytes);
+      }
       return prepareImage(bytes, config);
     },
+    writeEvent:(story,config,history,context)=>config.sourceMode==='world'?writeStoryOutcome(ctx.llm,story,config,history,context):Promise.resolve(story.excerpt||story.title),
     publish: publishAll,
-    progress: value => { status = {...value,action:status.action,issueId:status.issueId}; },
+    progress: async value => {status={...value,action:status.action,issueId:status.issueId};if(activeTask?.id)await taskStore.progress(activeTask.id,{stage:value.stage,completed:value.completed,total:value.total});},
   });
-  let status = { state: 'idle' };
-  let active = null;
-  let lastTry = 0;
-  const run = (config, options={}) => {
-    if (active) return false;
-    lastTry = Date.now();
-    const issueId=options.issueId||(options.force?dayKey(new Date())+'-'+randomBytes(4).toString('hex'):undefined),action=options.action||'run';
-    status = { state:'running',stage:options.blindbox?'world':'prompt',action,issueId };
-    let execution=config;
+  let status={state:'idle'},active=null,activeTask=null,disposed=false,tickActive=false;
+  const canceledError=()=>new DOMException('任务已取消','AbortError');
+  const run=(config,options={})=>{
+    if(active||disposed)return false;
+    const issueId=options.issueId||(options.force?dayKey(clock())+'-'+randomBytes(4).toString('hex'):undefined),action=options.action||'run',controller=new AbortController();
+    let task=options.task||null;activeTask={id:task?.id,bookingId:options.bookingId,controller};
+    status={state:'running',stage:options.blindbox?'world':'prompt',action,issueId};
+    let execution=config,allowedContext;
+    const guard=async()=>{controller.signal.throwIfAborted();if(disposed)throw canceledError();if(task&&(await taskStore.get(task.id))?.state!=='running')throw canceledError();if(allowedContext&&deliveryContextKey(effectiveConfig(await getConfig()))!==allowedContext)throw Object.assign(Error('当前世界或角色已变化，旧任务已停止'),{code:'CONTEXT_CHANGED'});return true;};
     active=(async()=>{
-      execution=await travelActions.prepare(config,{blindbox:options.blindbox,interaction:options.interaction||null});
+      const initialConfig=await getConfig(),initialContext=deliveryContextKey(effectiveConfig(initialConfig));
+      if(task?.contextKey&&task.contextKey!==initialContext&&!(task.executionPatch&&initialContext===(task.preparedContextKey||deliveryContextKey(effectiveConfig(task.executionConfig)))))throw Object.assign(Error('当前世界或角色已变化，旧任务已停止'),{code:'CONTEXT_CHANGED'});
+      if(!task){const entry=await taskStore.create({id:'manual-'+randomUUID(),type:'manual',autoRetry:false,day:dayKey(clock()),dueAt:clock().toISOString(),issueId,action});task=await taskStore.claim(entry.id);activeTask.id=task.id;}
+      await guard();
+      let preparedPatch=task.executionPatch;
+      if(task.executionPatch){
+        await mutateConfig(current=>{controller.signal.throwIfAborted();return deliveryContextKey(effectiveConfig(current))===task.contextKey?{...current,...task.executionPatch}:current;});
+        execution=task.executionConfig;
+      }else execution=await travelActions.prepare(config,{blindbox:options.blindbox,interaction:options.interaction||null,signal:controller.signal,checkpoint:async prepared=>{preparedPatch=prepared.executionPatch;await taskStore.progress(task.id,{...prepared,contextKey:initialContext,preparedContextKey:deliveryContextKey(effectiveConfig({...initialConfig,...prepared.executionPatch}))});}});
+      if(!options.force&&!options.blindbox&&!execution.nextDayPlan){const plan=await storyOptions.forRun(storyScope(effectiveConfig(execution)),task.day||dayKey(clock()));if(plan)execution={...execution,nextDayPlan:plan};}
       if(options.blindbox||options.action==='booked-travel')execution={...execution,dailyCount:1};
+      const currentContext=deliveryContextKey(effectiveConfig(await getConfig()));
+      if(currentContext!==initialContext&&currentContext!==deliveryContextKey(effectiveConfig({...initialConfig,...preparedPatch})))throw Object.assign(Error('当前世界或角色已变化，旧任务已停止'),{code:'CONTEXT_CHANGED'});
+      allowedContext=currentContext;await guard();
+      if(task)await taskStore.progress(task.id,{executionConfig:execution,executionPatch:null,contextKey:allowedContext,requestPrepared:true,issueId,stage:'prompt'});
       if(options.bookingId)await travelActions.rememberExecution(options.bookingId,execution,issueId);
-      if (execution.wallpaperMode === 'engine') {
-        execution.wallpaperExe = await resolveEngine(execution);
-        if (!execution.wallpaperExe) throw new Error('未检测到小红车；请选择 Windows 自带壁纸。本次未调用生图。');
-      }
-      const generation=effectiveConfig(execution);
-      if(generation.imageToImage&&generation.referenceId)await readReference(referenceDirectory,generation.referenceId);
-      return job.run(execution,{force:options.force===true,prepare:true,issueId});
-    })().then(async result=>{
-      status={...result,state:'running',stage:'briefing',action};
-      await syncDelivery({immediate:true,prepare:true,refresh:true,issueId:result.issueId},execution);
-      status={...result,action};
+      if(execution.wallpaperMode==='engine'){execution.wallpaperExe=await resolveEngine(execution);if(!execution.wallpaperExe)throw Error('未检测到小红车；请选择 Windows 自带壁纸。本次未调用生图。');}
+      const generation=effectiveConfig(execution);for(const ref of referenceBindings(generation))await readReference(referenceDirectory,ref.referenceId);
+      await guard();const result=await job.run(execution,{force:options.force===true,prepare:true,issueId,signal:controller.signal,guard});
+      if(result.state!=='published')throw Error(result.state==='no-story'?'暂无合适选题，本次未生成壁纸':'壁纸尚未完成');
+      if(execution.specialtiesEnabled!==false)await enqueueSpecialty(result).catch(()=>{specialtyError='特产任务暂未创建，壁纸已保留，恢复后会补建。';});
+      await guard();status={...result,state:'running',stage:'briefing',action};if(task)await taskStore.progress(task.id,{stage:'briefing',issueId:result.issueId});
+      await syncDelivery({immediate:true,prepare:true,refresh:true,issueId:result.issueId,strict:task?.type!=='manual',retry:(task?.attempts||0)>1,signal:controller.signal},execution);
+      await guard();
+      if(task)await taskStore.complete(task.id,{issueId:result.issueId});
       if(options.bookingId)await travelActions.finish(options.bookingId,{issueId:result.issueId});
-    },async error=>{status={...status,state:'error',error:error.message,action};if(options.bookingId)await travelActions.finish(options.bookingId,{issueId,error});}).catch(error=>{status={...status,state:'error',error:error.message,action};}).finally(()=>{active=null;});
+      if(execution.nextDayPlan?.id)await storyOptions.consume(execution.nextDayPlan.id,result.issueId);
+      status={...result,action};
+    })().catch(async error=>{
+      if(disposed)return;
+      try{
+      const canceled=controller.signal.aborted||error.name==='AbortError'||error.code==='CONTEXT_CHANGED';
+      if(task){if(canceled)await taskStore.cancel(task.id,error.code==='CONTEXT_CHANGED'?'context-changed':'user');else await taskStore.fail(task.id,error);}
+      if(options.bookingId){if(canceled)await travelActions.progress(options.bookingId,{stage:'canceled'});else await travelActions.finish(options.bookingId,{issueId,error});}
+      const saved=task?await taskStore.get(task.id):null;
+      status={...status,state:canceled?'canceled':saved?.state||'error',error:canceled?'任务已取消，已保存的图片仍保留':safeTaskError(error),nextRetryAt:saved?.nextRetryAt,attempts:saved?.attempts,action};
+      }catch(journalError){status={...status,state:'error',error:safeTaskError(error)+'；任务记录保存失败：'+safeTaskError(journalError),action};}
+    }).finally(()=>{active=null;activeTask=null;if(config.specialtiesEnabled!==false&&!disposed)pumpSpecialties();});
     return true;
   };
-  const desktopState=async()=>({...await delivery.desktopState(effectiveConfig(await getConfig())),generation:{state:status.state,stage:status.stage,issueId:status.issueId,action:status.action,error:status.error},interactionAvailable:!active,booking:await travelActions.getBooking()});
+  ctx.effect(()=>()=>{disposed=true;activeTask?.controller.abort();},'planet-news: cancel stale work');
+  const dailyTask=async day=>(await taskStore.get('daily-'+day));
+  const scheduling=async(config)=>{const now=clock(),task=await dailyTask(dayKey(now));return{timeZone:'Asia/Shanghai',nextDailyAt:nextDailyTime(effectiveConfig(config),now,task),daily:taskSummary(task)};};
+  const tick=async()=>{
+    if(tickActive||disposed)return;tickActive=true;
+    try{
+      const config=await getConfig(),now=clock();if(disposed)return;syncDelivery().catch(()=>{deliveryError='桌面投递暂未就绪，可在信箱查看已保存来信。';});
+      if(active)return;
+      if(config.specialtiesEnabled!==false)pumpSpecialties();
+      for(const previous of await taskStore.list({type:'story',all:true})){if(!['waiting','running','retrying','waiting-remote'].includes(previous.state))continue;const task=await taskStore.claim(previous.id,{recoverOwn:true});if(task){run(task.executionConfig||config,{force:false,issueId:task.issueId,task,action:'today-story',interaction:task.executionPatch||task.requestPrepared?null:task.requestedInteraction});return;}}
+      const due=await travelActions.claimDue(config,{recoverOwn:true});
+      if(due){run(due.executionConfig||due.config,{force:false,blindbox:!due.executionConfig,issueId:due.resumeIssueId,bookingId:due.booking.id,task:due.booking,action:'booked-travel'});return;}
+      const effective=effectiveConfig(config),day=dayKey(now);
+      if(!config.enabled)return;
+      // Recover already-paid/accepted work across midnight, but never generate
+      // a backlog of missed days or let exhausted historical failures block today.
+      const previous=(await taskStore.list({type:'daily',all:true})).filter(t=>t.day<day&&['running','retrying','waiting-remote'].includes(t.state));
+      for(const old of previous){
+        const record=old.issueId?await readJson(join(dir,'issues',old.issueId+'.json'),null):null;
+        const remote=record?.pending?.renderState,accepted=Boolean(record?.images?.length||(remote?.kind==='comfy'&&remote.promptId)||(remote?.kind==='cloud'&&['submitted','received','uncertain'].includes(remote.state)));
+        if(!accepted){await taskStore.cancel(old.id,'missed-day');continue;}
+        const claimed=await taskStore.claim(old.id,{recoverOwn:true});if(claimed){run(claimed.executionConfig||config,{force:false,issueId:claimed.issueId,task:claimed,action:'automatic'});return;}
+      }
+      let entry=await dailyTask(day);
+      if(!entry){
+        if((effective.tripStartDay&&day<effective.tripStartDay)||now.getTime()<Date.parse(scheduleAt(day,config.hour)))return;
+        const legacy=await readJson(join(dir,'issues',day+'.json'),null),completed=legacy?.state==='published'&&legacy.day===day&&(!legacy.issueId||legacy.issueId===day);
+        entry=await taskStore.create({id:'daily-'+day,type:'daily',day,hour:config.hour,dueAt:scheduleAt(day,config.hour),issueId:completed?day:day+'-'+randomBytes(4).toString('hex'),...(completed?{state:'completed',stage:'done',migrated:true,finishedAt:new Date(legacy.appliedAt||now.getTime()).toISOString()}:{})});
+      }
+      const claimed=await taskStore.claim(entry.id,{recoverOwn:true});if(claimed)run(claimed.executionConfig||config,{force:false,issueId:claimed.issueId,task:claimed,action:'automatic'});
+    }finally{tickActive=false;}
+  };
+  const safelyTick=()=>tick().catch(error=>{status={state:'error',error:safeTaskError(error)};});
+  const recoverAuthorization=async provider=>{
+    const config=await getConfig(),booking=await travelActions.getBooking();
+    const resumed=await recoverAuthorizedTasks({provider,config,taskStore,bookingId:booking?.id,now:clock()});
+    if(resumed.length)safelyTick();
+    return resumed;
+  };
+  runtime.onAuthorizationRecovery?.(recoverAuthorization);
+  const getStoryContext=async()=>{
+    const config=effectiveConfig(await getConfig()),scopeKey=storyScope(config);
+    const history=await issueHistory(join(dir,'issues'),{all:true}).catch(error=>{if(error.code==='ENOENT')return [];throw error;});
+    const record=history.find(record=>record.state==='published'&&storyScope(effectiveConfig(record.recipe||{}))===scopeKey);
+    const outcome=record?.storyOutcome?.status==='committed'?record.storyOutcome.description:record?.images?.at(-1)?.storyOutcome?.description||record?.prompt||'';
+    const context={scopeKey,world:config.world,party:activeParty(config),rolesEnabled:config.rolesEnabled!==false,issueId:record?.issueId||record?.day||'',storyOutcome:outcome,valid:Boolean(record&&outcome),settingsVersion:deliveryContextKey(config)};
+    return {...context,version:storyVersion(context)};
+  };
+  const storyTaskStatus=async id=>{const task=await taskStore.get(id);if(!task)return {state:'not-found'};const record=task.issueId?await readJson(join(dir,'issues',task.issueId+'.json'),null):null;return {...taskSummary(task),taskId:task.id,wallpaperState:record?.state==='published'?'applied':record?.images?.length?'generated':'pending',letterStatus:record?.images?.some(p=>p.diaryError)?'error':record?.images?.some(p=>p.diary)?'ready':'pending'};};
+  const acceptStory=async value=>{
+    const existing=await taskStore.get(value.taskId);if(existing)return storyTaskStatus(value.taskId);
+    if(active)throw Object.assign(Error('生成中，稍等'),{status:409});
+    const config=await getConfig(),current=await getStoryContext();if(current.scopeKey!==value.scopeKey||current.version!==value.version)throw Object.assign(Error('当前剧情已更新，请重新选择。自定义草稿已保留。'),{status:409});
+    const issueId=dayKey(clock())+'-'+createHash('sha256').update(value.taskId).digest('hex').slice(0,8);
+    await taskStore.create({id:value.taskId,type:'story',autoRetry:true,day:dayKey(clock()),dueAt:clock().toISOString(),issueId,action:'today-story',contextKey:deliveryContextKey(effectiveConfig(config)),executionConfig:structuredClone(config),requestedInteraction:{mode:'today',text:value.text}});
+    const task=await taskStore.claim(value.taskId);if(!task)return storyTaskStatus(value.taskId);
+    run(config,{force:false,issueId,task,action:'today-story',interaction:task.requestedInteraction});
+    return {taskId:value.taskId,state:'running',issueId};
+  };
+  const storyOptions=createStoryOptions({directory:dir,getContext:getStoryContext,getConfig,getBooking:()=>travelActions.getBooking(),write:async task=>streamText(ctx.llm,task,await getConfig(),2000),accept:acceptStory,taskStatus:storyTaskStatus,now:clock});
+  const desktopState=async()=>({...await delivery.desktopState(effectiveConfig(await getConfig())),generation:{state:status.state,stage:status.stage,issueId:status.issueId,action:status.action,error:status.error},interactionAvailable:!active,booking:await travelActions.getBooking(),storyContext:await getStoryContext()});
   const startInteraction=async input=>{
     if(active)throw Object.assign(Error('正在生成中，稍等'),{status:409});
     if(!['reply','interfere'].includes(input.mode)||typeof input.text!=='string'||!input.text.trim()||input.text.length>4000)throw Object.assign(Error('请填写1至4000字的回信或干涉指令'),{status:400});
     const config=await getConfig();if(input.mode==='reply'&&config.rolesEnabled===false)throw Object.assign(Error('观察世界没有旅行角色，请使用干涉世界'),{status:400});
     if(input.contextKey&&input.contextKey!==deliveryContextKey(effectiveConfig(config)))throw Object.assign(Error('当前世界或角色已变化，请重新打开输入框'),{status:409});
     if(input.sourceIssueId){const current=await delivery.desktopState(effectiveConfig(config));const source=current.news?.source?.issueId||current.latestLetter?.sourceIssueId;if(source!==input.sourceIssueId)throw Object.assign(Error('当前世界已变化，请刷新后重新提交'),{status:409});}
+    if(input.requestId){
+      if(typeof input.requestId!=='string'||!/^[-a-zA-Z0-9_]{1,120}$/.test(input.requestId))throw Object.assign(Error('请求编号无效'),{status:400});
+      const id='interaction-'+createHash('sha256').update(input.requestId).digest('hex').slice(0,24),previous=await taskStore.get(id);
+      if(previous)return storyTaskStatus(id);
+      const issueId=dayKey(clock())+'-'+createHash('sha256').update(id).digest('hex').slice(0,8);
+      await taskStore.create({id,type:'story',autoRetry:true,day:dayKey(clock()),dueAt:clock().toISOString(),issueId,action:'interaction',contextKey:deliveryContextKey(effectiveConfig(config)),executionConfig:structuredClone(config),requestedInteraction:{mode:input.mode,text:input.text}});
+      const task=await taskStore.claim(id);run(config,{force:false,issueId,task,action:'interaction',interaction:task.requestedInteraction});
+      return {taskId:id,issueId,state:'running'};
+    }
     run(config,{force:true,action:'interaction',interaction:{mode:input.mode,text:input.text}});
   };
-  ctx.effect(() => {
-    const tick = async () => {
-      const config = await getConfig();
-      const now = new Date();
-      syncDelivery().catch(()=>{deliveryError='桌面投递暂未就绪，可在信箱查看已保存来信。';});
-      if(!active){const due=await travelActions.claimDue(config);if(due){run(due.executionConfig||due.config,{force:!due.resumeIssueId,blindbox:!due.executionConfig,issueId:due.resumeIssueId,bookingId:due.booking.id,action:'booked-travel'});return;}}
-      const latest=await readJson(join(dir,'issues','latest.json'),null),completedToday=(status.state==='published'&&status.day===dayKey(now))||(latest?.state==='published'&&latest.day===dayKey(now));
-      if(config.enabled&&(!effectiveConfig(config).tripStartDay||dayKey(now)>=effectiveConfig(config).tripStartDay)&&now.getHours()>=config.hour&&!completedToday&&Date.now()-lastTry>=30*60_000)run(config,{action:'automatic'});
-    };
-    const safelyTick = () => tick().catch(error => { status = { state: 'error', error: error.message }; });
-    const timer = setInterval(safelyTick, 60_000);
-    safelyTick();
-    return () => clearInterval(timer);
-  }, 'planet-news: daily timer');
+  ctx.effect(()=>{const timer=setInterval(safelyTick,60_000);runtime.onScheduler?.(safelyTick);safelyTick();return()=>clearInterval(timer);},'planet-news: daily timer');
   ctx.effect(() => ctx.webServer.register({
     kind: 'exact', path: base,
     async handler(req, res) {
@@ -600,6 +709,12 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
           const query = new URL(req.url, 'http://localhost').searchParams;
           if(query.has('clientSession'))return json(res,200,requestGuard.session());
           if(query.has('about'))return json(res,200,await aboutSupport.describe());
+          if(query.has('specialties'))return json(res,200,{...await specialties.list(),error:specialtyError});
+          if(query.has('specialty')){try{return json(res,200,await specialties.details(query.get('specialty')));}catch(error){return json(res,error.status||400,{error:error.message});}}
+          if(query.has('specialtyImage')){try{const result=await specialties.image(query.get('specialtyImage'));res.writeHead(200,{'content-type':result.mediaType,'cache-control':'private, no-store','x-content-type-options':'nosniff'});return res.end(result.bytes);}catch(error){return json(res,error.status||400,{error:error.message});}}
+          if(query.has('storyStatus'))return json(res,200,await storyOptions.status(query.get('storyStatus')));
+          if(query.has('storyContext')){try{return json(res,200,await storyOptions.current());}catch(error){return json(res,error.status||400,{error:error.message});}}
+          if(query.has('tasks'))return json(res,200,{tasks:(await taskStore.list()).map(task=>({...taskSummary(task),events:task.events}))});
           if(query.has('supportCode')){
             const bytes=await aboutSupport.image();
             if(!bytes)return json(res,404,{error:'赞赏码未配置或已暂停公开展示'});
@@ -630,7 +745,7 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
             const character=query.get('character')||'all';
             if(!characterFilters.some(([id])=>id===character)&&!/^[a-f0-9-]{36}$/.test(character))return json(res,400,{error:'角色分类无效'});
             const archive=await readArchive({character});
-            if (query.has('worlds')) return json(res,200,{worlds:archive.worlds,total:archive.total,skipped:archive.skipped,filters:archive.filters});
+            if (query.has('worlds')) return json(res,200,{worlds:archive.worlds,total:archive.total,skipped:archive.skipped,filters:archive.filters,presetProgress:await worldVisits.sync(archive.presetVisits)});
             const world=archive.worlds.find(world=>world.id===id);
             if (!world) return json(res,404,{error:'这个世界还没有已保存的壁纸'});
             const pictures=archive.images.filter(image=>image.worldId===id);
@@ -693,7 +808,7 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
             try { reference = (await readReference(referenceDirectory, generation.referenceId)).meta; }
             catch { reference = { id:generation.referenceId,missing:true,name:'参考图已丢失，请重新上传' }; }
           }
-          return json(res, 200, { config, reference, status: currentStatus || status, version: manifest.version,booking:await travelActions.getBooking() });
+          return json(res, 200, { config, reference, status: currentStatus || status, version: manifest.version,booking:await travelActions.getBooking(),scheduling:await scheduling(config) });
         }
         if (req.method !== 'POST') return json(res, 405, { error: '不支持此方法' });
         if (!req.headers['content-type']?.toLowerCase().startsWith('application/json')) return json(res,403,{error:'需要JSON格式的应用请求'});
@@ -709,6 +824,11 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
         if(!input||typeof input!=='object'||Array.isArray(input))return json(res,400,{error:'请求内容无效'});
         if(!requestGuard.allowsWrite(req,input))return json(res,403,{error:'桌面写入会话已过期，请刷新旅行壁纸设置页面'});
         if (input.action !== 'upload' && body.length > 65_536) return json(res, 413, { error: '设置过长' });
+        if(input.action==='specialty-retry'){try{await specialties.retry(input.id);pumpSpecialties();return json(res,202,{retrying:true});}catch(error){return json(res,400,{error:error.message});}}
+        if(['story-options','story-continue','desktop-story-options','desktop-story-continue'].includes(input.action)){
+          if(input.action.startsWith('desktop-')&&!desktop.authorized(req.headers['x-travel-widget-key']))return json(res,403,{error:'需要桌面组件授权'});
+          try{return json(res,input.action.endsWith('continue')?202:200,input.action.endsWith('continue')?await storyOptions.submit(input):await storyOptions.prepare(input.kind));}catch(error){return json(res,error.status||400,{error:error.message});}
+        }
         if(input.action==='save-export'){
           try{
             const config=await getConfig(),directory=normalizeDownloadDirectory(config.downloadDirectory||'');if(!directory)throw Error('请先保存自定义下载目录');
@@ -720,8 +840,16 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
           }catch(error){return json(res,error.status||400,{error:'导出失败：'+error.message});}
         }
         if(input.action==='book-travel'||input.action==='cancel-travel-booking'){
+          if(input.action==='cancel-travel-booking'){
+            const booking=await travelActions.getBooking();if(booking&&activeTask?.bookingId===booking.id){activeTask.controller.abort();status={...status,stage:'canceling',error:'预约已取消，等待当前请求结束；不会继续应用壁纸或投递'};}await travelActions.cancel();return json(res,200,{booking:null});
+          }
           if(active)return json(res,409,{error:'正在生成中，稍等'});
-          return json(res,200,{booking:input.action==='book-travel'?await travelActions.book(await getConfig()):await travelActions.cancel()});
+          try{await storyOptions.assertCanBook(dayKey(new Date(clock().getTime()+86400000)));}catch(error){return json(res,error.status||400,{error:error.message});}
+          return json(res,200,{booking:await travelActions.book(await getConfig())});
+        }
+        if(input.action==='retry-task'){
+          if(active)return json(res,409,{error:'正在生成中，稍等'});
+          try{const task=await taskStore.get(input.id),booking=await travelActions.getBooking();if(!task||!['daily','story','booking'].includes(task.type)||(task.type==='booking'&&booking?.id!==task.id))return json(res,400,{error:'请选择每日任务、剧情任务或当前预约'});await taskStore.retry(task.id);safelyTick();return json(res,202,{retrying:true});}catch(error){return json(res,400,{error:error.message});}
         }
         if(input.action==='interaction'){try{await startInteraction(input);return json(res,202,{status});}catch(error){return json(res,error.status||400,{error:error.message});}}
         if(typeof input.action==='string'&&input.action.startsWith('desktop-')){
@@ -744,10 +872,11 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
         if (input.action === 'upload') {
           if (typeof input.data !== 'string' || !/^[A-Za-z0-9+/]+={0,2}$/.test(input.data)) return json(res, 400, { error: '参考图内容无效' });
           try { const assigned=await saveReference(referenceDirectory,Buffer.from(input.data,'base64'),input.characterName||'自定义');
-            const identity=await referenceLibrary.assign({referenceId:assigned.id,name:input.characterName??'',slot:input.slot??0});
+            const identity=await referenceLibrary.assign({referenceId:assigned.id,name:input.characterName??'',slot:input.slot??0,persona:input.persona,addressee:input.addressee,description:input.description});
             return json(res,200,{reference:{...assigned,...identity,name:identity.name},library:await referenceLibrary.list()}); }
           catch (error) { return json(res, 400, { error: error.message }); }
         }
+        if(input.action==='save-reference-profile'){try{const profile=await referenceLibrary.updateProfile(input);return json(res,200,{profile,library:await referenceLibrary.list()});}catch(error){return json(res,400,{error:error.message});}}
         if(input.action==='rename-reference'||input.action==='hide-character'){
           try{if(input.action==='rename-reference')await referenceLibrary.rename({identityId:input.identityId,name:input.name});else await referenceLibrary.hide(input.identityId);return json(res,200,{library:await referenceLibrary.list()});}catch(error){return json(res,400,{error:error.message});}
         }
@@ -758,6 +887,11 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
           config.wallpaperExe = executable;
           await mutateConfig(current=>({...current,wallpaperExe:config.wallpaperExe}));
           return json(res, 200, { executable });
+        }
+        if(input.action==='trip-random-builtin'){
+          await worldVisits.sync((await readArchive()).presetVisits);
+          const chosen=await worldVisits.pick({excludeId:typeof input.excludeId==='string'?input.excludeId:''});
+          return json(res,200,{caseId:chosen.id,timeId:chosen.time.id,presetProgress:await worldVisits.progress()});
         }
         if (input.action === 'trip-generate') {
           if(randomizing)return json(res,409,{error:'DSH正在创作新世界，请等待完成'});
@@ -793,7 +927,7 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
             let picture,sharedDiary;
             try {picture=getImage(issue,input.index??0).picture;await stat(join(dir,'issues',issueImage({...picture,day:issue.day})));}
             catch(error){return json(res,400,{error:error.message});}
-            if(!picture.referenceId||imageCharacters(picture,issue).includes('none'))return json(res,400,{error:'观察世界的图片不生成角色日记或留言'});
+            if((!picture.referenceId&&!picture.party?.length)||imageCharacters(picture,issue).includes('none'))return json(res,400,{error:'观察世界的图片不生成角色日记或留言'});
             if(picture.diary)return json(res,200,{diary:picture.diary});
             const config=await getConfig();
             picture.characterIds=imageCharacters(picture,issue);
@@ -828,7 +962,7 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
         if (input.action === 'preview') {
           const config = effectiveConfig(await getConfig());
           const history = await issueHistory(join(dir, 'issues')).catch(error => { if (error.code === 'ENOENT') return []; throw error; });
-          const story = config.sourceMode === 'world' ? worldStory(config, history, dayKey(new Date())) : selectStory(await collectStories(config, dshHome), history.map(item => item.story?.url), config.days, new Date());
+          const story = config.sourceMode === 'world' ? worldStory(config, history, dayKey(new Date())) : selectStory(await collectStories(config, dshHome), usedStoryUrls(history), config.days, new Date());
           if (!story) return json(res, 200, { state: 'no-story' });
           const prompt = await composePrompt(story, config, history.slice(0, 4));
           return json(res, 200, { story, prompt, parts: splitPrompt(prompt, config.style) });
@@ -850,8 +984,9 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
           const files = pictures.map(picture => join(dir, 'issues', issueImage({ ...picture, day: issue.day })));
           status = { state: 'running', stage: 'applying', total: files.length, completed: files.length };
           const publication=await publishAll(files.length === 1 ? files[0] : files,config);if(publication?.lockScreen)issue.lockScreen=publication.lockScreen;
-          if (issue.state !== 'creating') issue.state = 'published';
-          status = { ...issue, appliedCount: files.length, appliedAt: Date.now() };
+          const appliedAt=clock().getTime();
+          if (issue.state !== 'creating') {commitStoryOutcome(issue,appliedAt);issue.state = 'published';}
+          status = { ...issue, appliedCount: files.length, appliedAt };
           await atomicWrite(join(dir, 'issues', `${input.issueId}.json`), JSON.stringify(status, null, 2));
           await atomicWrite(join(dir, 'issues', 'latest.json'), JSON.stringify(status, null, 2));
           return json(res, 200, { status });
@@ -867,7 +1002,7 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
           if (!(key in input.config)) continue;
           if (typeof input.config[key] !== typeof fallback) return json(res, 400, { error: '设置类型无效' });
           if((tripFields.includes(key)||tripFields.some(field=>observerFields[field]===key))&&input.config[key]!==current[key])return json(res,400,{error:'请用“确认此行程”保存新的创作正文与来源'});
-          config[key] = input.config[key];
+          config[key] = key==='party'&&input.config[key]!==null?normalizeParty(input.config[key]):input.config[key];
         }
         if(confirming){
           try {
@@ -886,7 +1021,7 @@ export function apply(ctx, _options, publisher = publishWallpaper, desktopFactor
           config.downloadDirectory=normalizeDownloadDirectory(config.downloadDirectory);
           normalizeConfig(config);
           const generation=effectiveConfig(config);
-      if (generation.imageToImage && generation.referenceId) await readReference(referenceDirectory, generation.referenceId);
+      for(const ref of referenceBindings(generation))await readReference(referenceDirectory,ref.referenceId);
         } catch (error) { return json(res, 400, { error: error.message }); }
         // Paths are privileged installation details, configured on disk only.
         for (const key of ['wallpaperExe', 'topicFile']) config[key] = current[key];

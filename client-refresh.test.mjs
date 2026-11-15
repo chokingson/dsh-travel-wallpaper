@@ -7,8 +7,8 @@ const source=await readFile(new URL('./client.js',import.meta.url),'utf8');
 const {createAboutSupport}=await import('./about-support.js');
 const publicAbout=await createAboutSupport().describe();
 const baseline={rolesEnabled:true,referenceId:'custom-1',characters:'测试角色',imageToImage:true,style:'原画风',styleId:'custom',width:1920,height:1080,dailyCount:1,hour:8,world:'原世界',tripSource:'user',tripPrompt:'已确认行程',tripConfirmedAt:'2026-11-07',tripMeta:'{}',downloadDirectory:''};
-function harness({config={},booking=null,status={},respond,copy}={}){
-  let factory,Panel,tree,changed=false,cursor=0,slots=[],effects=[],timers=[],calls=[],server={config:{...baseline,...config},booking,status,version:'0.12.1'},pending=[];
+function harness({config={},booking=null,status={},respond,copy,scheduling=null}={}){
+  let factory,Panel,tree,changed=false,cursor=0,slots=[],effects=[],timers=[],calls=[],server={config:{...baseline,...config},booking,status,scheduling,version:'0.12.1'},pending=[];
   const storage=new Map(),copied=[],documentEvents={};
   const react={createElement:(type,props,...children)=>({type,props:props||{},children:children.flat(Infinity).filter(i=>i!==null&&i!==undefined&&i!==false)}),
     useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return[slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;changed=true;}];},
@@ -31,6 +31,15 @@ function harness({config={},booking=null,status={},respond,copy}={}){
   return{settle,walk,text,find,click,change,calls,server,storage,copied,key:async key=>{documentEvents.keydown?.({key});await settle();},poll:async()=>{timers[0]();await settle();},get tree(){return tree;}};
 }
 
+test('an expired subscription has a direct recovery entry and an honest channel badge',async()=>{
+ const ui=harness({config:{imageChannel:'chatgpt-sub'},status:{state:'error',error:'订阅登录或刷新失败（HTTP 401），请重新授权'},respond:url=>url.includes('?channels')?{profiles:[{provider:'chatgpt-sub',label:'ChatGPT 订阅',subscription:true,configured:false,loginState:'reauthorization-required'}]}:undefined});
+ await ui.settle();assert.ok(ui.find('button','重新登录生图订阅'));
+ await ui.click('重新登录生图订阅');
+ assert.ok(ui.text(ui.tree).includes('登录已失效，请重新登录'));
+ assert.ok(ui.find('button','重新登录所选订阅'));
+ assert.ok(ui.text(ui.tree).includes('ChatGPT 订阅 · 登录已失效'));
+});
+
 test('persistent custom uploads use hidden chooser, selected status and a contained multiline name hint',async()=>{
  const ui=harness();await ui.settle();await ui.click('参考图');
  const input=ui.find('input','上传自定义角色1');assert.equal(input.props.hidden,true);
@@ -51,7 +60,7 @@ test('角色旅行介绍与日记说明采用新的用户称呼文案',async()=>
  assert.ok(text.includes('带心爱的角色去旅行，是当旅客？扶老奶奶过马路？还是毁世界，由你主导。'));
  assert.ok(text.includes('默认称呼“用户”，可自行修改。'));
  assert.ok(!text.includes('大肥鱼像可爱的女儿'));
- assert.equal(ui.find('input','角色对你的称呼').props.placeholder,'用户');
+ assert.equal(ui.find('input','角色对你的称呼'),undefined);
 });
 
 test('ordinary generation requires draft confirmation; blindbox keeps the draft and selected role',async()=>{
@@ -97,7 +106,7 @@ test('an older poll cannot replace the running status after a new action respons
 
 test('restored tomorrow booking and scheduled run show booking progress without a competing action',async()=>{
  const booking={id:'persisted',day:'2026-11-09',hour:8,dueAt:'2026-11-09T00:00:00Z',character:'测试角色',state:'running'};
- const ui=harness({booking,status:{state:'running',action:'booked-travel',stage:'world'}});await ui.settle();assert.ok(ui.text(ui.tree).includes('2026-11-09 08:00（中国时间）'));assert.ok(ui.text(ui.tree).includes('正在创作盲盒新世界'));assert.ok(ui.find('button','生成中，稍等'));assert.equal(ui.find('button','取消盲盒旅行预订'),undefined);assert.equal(ui.find('button','立即盲盒旅行').props.disabled,true);
+ const ui=harness({booking,status:{state:'running',action:'booked-travel',stage:'world'}});await ui.settle();assert.ok(ui.text(ui.tree).includes('2026-11-09 08:00（中国时间）'));assert.ok(ui.text(ui.tree).includes('正在创作盲盒新世界'));assert.ok(ui.find('button','生成中，稍等'));assert.ok(ui.find('button','取消盲盒旅行预订'));assert.equal(ui.find('button','立即盲盒旅行').props.disabled,true);
 });
 
 test('lock-screen synchronization follows saved preference and can be disabled independently',async()=>{
@@ -132,4 +141,43 @@ test('关于分栏缺资料、安全链接与剪贴板失败都有明确提示�
  assert.ok(ui.text(ui.tree).includes('待配置'));assert.ok(ui.text(ui.tree).includes('暂停公开展示'));assert.equal(ui.walk().filter(n=>n.type==='a').length,0);assert.equal(ui.find('button','自愿支持开发'),undefined);
  await ui.click('每日壁纸');assert.ok(ui.find('button','制作今日壁纸'));assert.equal(ui.server.config.world,'原世界');
  const denied=harness({copy:async()=>{throw Error('clipboard denied');}});await denied.settle();await denied.click('关于与支持');await denied.click('复制微信号');assert.ok(denied.text(denied.tree).includes('手动复制'));
+});
+
+test('定时状态显示实际中国时间与重试，不把用户保存时间改回默认6点',async()=>{
+ const ui=harness({config:{hour:20,enabled:true},scheduling:{nextDailyAt:'2026-11-12T12:00:00Z',daily:{id:'daily-2026-11-11',state:'retrying',attempts:1,nextRetryAt:'2026-11-11T12:03:00Z',error:'应用失败'}}});await ui.settle();const text=ui.text(ui.tree);assert.ok(text.includes('2026-11-12 20:00'));assert.ok(text.includes('中国时间'));assert.ok(text.includes('2026-11-11 20:03'));assert.equal(ui.server.config.hour,20);
+});
+test('运行中的预约仍可取消，失败历史按需读取',async()=>{
+ const ui=harness({booking:{id:'b',day:'2026-11-12',hour:20,state:'running',character:'测试角色'},status:{state:'running',action:'booked-travel'}});await ui.settle();assert.ok(ui.find('button','取消盲盒旅行预订'));await ui.click('取消盲盒旅行预订');assert.equal(ui.server.booking,null);assert.ok(ui.find('button','查看任务记录'));assert.ok(!ui.calls.some(c=>c.url.includes('?tasks')));await ui.click('查看任务记录');assert.ok(ui.calls.some(c=>c.url.includes('?tasks')));
+});
+
+test('multi-role cards preserve order, main promotion and independent per-card address',async()=>{
+ const actors=['deepseek','gpt','claude'].map((id,i)=>({id,referenceId:'builtin-'+id,name:['DS大肥鱼','GPT 龙娘','Claude 大小姐'][i],character:'角色'+i}));
+ const first={id:'builtin-deepseek',referenceId:'builtin-deepseek',name:'DS大肥鱼',description:'角色0',persona:'好奇',addressee:'用户'};
+ const ui=harness({config:{party:[first]},respond(url){if(url.includes('?catalog'))return{styles:[],worlds:[],resolutions:[],characters:actors};}});
+ await ui.settle();await ui.click('创作提示词');await ui.click('GPT 龙娘');
+ assert.ok(ui.text(ui.tree).includes('同行角色：2／3'));
+ await ui.change('DS大肥鱼对你的称呼','船长');await ui.click('DS大肥鱼');
+ assert.ok(ui.text(ui.tree).includes('主角色 · GPT 龙娘'));
+ await ui.click('DS大肥鱼');await ui.click('保存设置 · 有未保存修改');
+ assert.deepEqual(ui.server.config.party.map(a=>a.id),['builtin-gpt','builtin-deepseek']);assert.equal(ui.server.config.party[1].addressee,'船长');
+ assert.equal(ui.find('input','角色对你的称呼'),undefined);
+});
+
+test('story options highlight first, custom is exclusive, Continue submits one task and tomorrow stores full text',async()=>{
+ const context={scopeKey:'scope-1',version:'version-1',valid:true,world:'港口',hour:20,plan:null};
+ const ui=harness({respond(url,body){if(url.includes('?storyContext'))return context;if(body?.action==='story-options')return{...context,choices:[{id:'A',text:'去港口看看'},{id:'B',text:'与售票员交谈'},{id:'C',text:'一封新消息抵达'}]};if(body?.action==='story-continue')return{state:'saved',plan:{text:'与售票员交谈',day:'2026-11-12',hour:20}};}});
+ await ui.settle();await ui.click('次日剧情');assert.equal(ui.find('button','继续').props.disabled,true);
+ await ui.click('A．去港口看看');assert.equal(ui.find('input','次日自定义剧情').props.disabled,true);assert.ok(!ui.calls.some(call=>call.body?.action==='story-continue'));
+ await ui.click('重选');await ui.change('次日自定义剧情','自定义想法');assert.equal(ui.find('button','B．与售票员交谈').props.disabled,true);
+ await ui.click('重选');await ui.click('B．与售票员交谈');await ui.click('继续');
+ const calls=ui.calls.filter(call=>call.body?.action==='story-continue');assert.equal(calls.length,1);assert.equal(calls[0].body.choice,'B');assert.equal('text'in calls[0].body,false);assert.ok(ui.text(ui.tree).includes('2026-11-12'));
+});
+
+test('specialty page lists only received items and opens compact progress checklist on demand',async()=>{
+ const item={id:'specialty:frog-world:01',name:'抹茶绿国藏茶叶蛋',world:'蛙世界',worldCaseId:'frog-world',lastReceivedAt:'2026-11-11T08:00:00Z',deliveryCount:2};
+ const ui=harness({respond(url){if(url.includes('?specialties'))return{items:[item],progress:1,total:50,pending:[],checklist:[{number:'001',world:'熔岩地球漂浮岛',collected:false},{number:'012',world:'蛙世界',collected:true,itemId:item.id}]};if(url.includes('?specialty='))return{item:{...item,properties:'永不过期',localUse:'食品与收藏'},deliveries:[{id:'gift1',day:'2026-11-11',story:'这盒茶叶蛋绕了远路才到。',party:[],sourceWorld:{world:'蛙世界'},travelWorld:{world:'云港'},sourceIssueId:'2026-11-11-1234abcd'}]};}});
+ await ui.settle();await ui.click('“特产”');assert.ok(ui.text(ui.tree).includes('预设世界收藏：1 / 50'));assert.equal(ui.walk().filter(n=>n.type==='img').length,1);assert.ok(!ui.text(ui.tree).includes('熔岩地球漂浮岛'));
+ await ui.click('查看50个世界的收集情况');assert.ok(ui.text(ui.tree).includes('001'));assert.ok(ui.text(ui.tree).includes('未收集'));assert.equal(ui.walk().filter(n=>n.type==='img').length,1);
+ await ui.click('抹茶绿国藏茶叶蛋');assert.ok(ui.text(ui.tree).includes('永不过期'));assert.ok(ui.text(ui.tree).includes('这盒茶叶蛋绕了远路才到。'));
+ assert.ok(!ui.calls.some(call=>['run','travel-now','story-continue'].includes(call.body?.action)));
 });

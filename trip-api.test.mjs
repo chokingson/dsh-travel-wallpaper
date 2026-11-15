@@ -13,6 +13,10 @@ test('完整桌面转发链：无Origin凭会话保存/确认，预设与真实�
  const model=await post({action:'trip-confirm',choice:{generationId:draft.candidate.id}}).then(r=>r.json());assert.equal(model.config.tripSource,'dsh');assert.equal(model.config.tripGenerationId,draft.candidate.id);assert.match(model.config.tripPrompt,/邮票海洋/);
  const custom=await post({action:'trip-confirm',choice:{text:'去一颗会唱歌的星球',caseId:'jurassic'}}).then(r=>r.json());assert.equal(custom.config.tripSource,'user');assert.equal(custom.config.tripCaseId,'');assert.equal(custom.config.tripPrompt,'去一颗会唱歌的星球');assert.equal(JSON.parse(await readFile(join(home,'planet-news/config.json'),'utf8')).tripPrompt,custom.config.tripPrompt);
  assert.equal((await post({config:{hour:8}},'https://evil.example')).status,403);assert.equal((await post({config:{tripSource:'dsh'}})).status,400);
+ await mkdir(join(home,'planet-news/issues'),{recursive:true});
+ await writeFile(join(home,'planet-news/issues/2026-11-01.json'),JSON.stringify({day:'2026-11-01',state:'published',recipe:{...confirmed.config,tripSource:'builtin',tripCaseId:'jurassic'},images:[{imageFile:'2026-11-01.png',world:'侏罗纪'}]}));await writeFile(join(home,'planet-news/issues/2026-11-01.png'),'archived-image');
+ const visits=await fetch(url+'?worlds').then(r=>r.json());assert.equal(visits.presetProgress.visited,1);
+ for(let i=0;i<5;i++){const pick=await post({action:'trip-random-builtin'}).then(r=>r.json());assert.ok(pick.timeId);assert.notEqual(pick.caseId,'jurassic');assert.equal(pick.presetProgress.cycleVisited,1);}
  const roleWorld=custom.config.world;
  const observer=await post({action:'trip-confirm',config:{rolesEnabled:false},choice:{caseId:'jurassic'}}).then(r=>r.json());
  assert.equal(observer.config.world,roleWorld,'观察世界确认不覆盖角色旅行的世界');

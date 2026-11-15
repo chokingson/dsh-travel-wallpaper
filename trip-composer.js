@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
 import { worldCases, timeTags, pickWorldCase, renderWorldCase, worldCasePatch } from './world-cases.js';
-import { readPromptSkill, streamText } from './prompt-skills.js';
+import { readWorldSkill, streamText } from './prompt-skills.js';
 
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const trimText=value=>typeof value==='string'?value.trim():'';
@@ -16,19 +16,25 @@ export function tripCatalog() {
 function parseIdea(text) {
   let data;try{data=JSON.parse(text.replace(/^\x60{3}(?:json)?\s*/,'').replace(/\s*\x60{3}$/,''));}catch{throw new Error('DSH未返回完整世界JSON，未使用本地预设替代');}
   if(!data||Array.isArray(data)||typeof data!=='object')throw new Error('DSH世界格式无效');
-  for(const key of ['world','timeTagId','society','conflict','tone','direction','opening']){
+  for(const key of ['world','timeTagId','society']){
     if(typeof data[key]!=='string'||!data[key].trim()||data[key].length>1500)throw new Error('DSH世界缺少字段：'+key);
     data[key]=data[key].trim();
   }
-  for(const key of ['themes','beats']){
-    if(!Array.isArray(data[key])||data[key].length<(key==='beats'?3:1)||data[key].length>8||data[key].some(v=>typeof v!=='string'||!v.trim()||v.length>600))throw new Error('DSH世界字段不完整：'+key);
+  for(const key of ['themes','beats','worldRules','motifs']){
+    if(data[key]===undefined)data[key]=[];
+    if(!Array.isArray(data[key])||data[key].length>8||data[key].some(v=>typeof v!=='string'||!v.trim()||v.length>600))throw new Error('DSH世界字段不完整：'+key);
   }
   const time=timeTags.find(t=>t.id===data.timeTagId);
   if(!time)throw new Error('DSH返回的时间标签无效');
   const fixed=[[/侏罗纪/,'jurassic'],[/白垩纪/,'cretaceous'],[/三国演义|汉末三国/,'ce208']];
   for(const[pattern,id]of fixed)if(pattern.test(data.world)&&time.id!==id)throw new Error('DSH返回的世界与时间不一致，请重试');
   if(worldCases.some(c=>c.world===data.world))throw new Error('DSH照搬了内置世界名称，请重新创作；未伪装成新增案例');
-  return {id:'dsh-world',world:data.world,time,timeIds:[time.id],society:data.society,themes:data.themes,conflict:data.conflict,tone:data.tone,direction:data.direction,opening:data.opening,beats:data.beats,roleChoice:trimText(data.roleChoice)||'由所选角色按人设决定旁观或介入，并保留选择的后果。'};
+  const environment=trimText(data.environment)||data.society,worldRules=data.worldRules.length?data.worldRules:trimText(data.conflict)?[trimText(data.conflict)]:[],motifs=data.motifs.length?data.motifs:data.themes;
+  if(environment.length>3000||!worldRules.length)throw Error('DSH世界缺少实质环境或独特规则');
+  const fingerprint=value=>JSON.stringify([value.environment||'',value.society||'',value.worldRules||value.rules||[],value.motifs||value.themes||[]]).normalize('NFKC').replace(/\s+/g,'').toLowerCase();
+  const next={id:'dsh-world',world:data.world,time,timeIds:[time.id],environment,society:data.society,worldRules,motifs,themes:motifs,candidates:[],opening:'',beats:[]};
+  if(worldCases.some(c=>fingerprint(c)===fingerprint(next)))throw Error('DSH只改了世界名称，设定与默认世界相同，请重新创作');
+  return next;
 }
 function customPatch(text) {
   const hash=createHash('sha256').update(text).digest('hex').slice(0,8);
@@ -49,15 +55,15 @@ export function createTripComposer({dir,llm,now=()=>new Date()}) {
         if(!provider)throw new Error('DSH中没有可用的DeepSeek文本渠道，请先配置登录');
       }
       const writer={...config,textProvider:provider,textModel:config.textModel||'deepseek-flash'};
-      const skill=await readPromptSkill('text',config.rolesEnabled);
-      const schema={world:'全新世界名称',timeTagId:'从时间标签中选一项，世界优先',society:'社会形态',themes:['剧情主题：冒险/调查/交易等'],conflict:'持续提供每日事件灵感的主要矛盾',tone:'叙事基调：幽默/荒诞/温暖/严肃等',direction:'主要矛盾未来如何发展',opening:'一幕可画的开场小事，不写旅行角色名字',beats:['之后第一步','之后第二步','之后第三步'],roleChoice:'有旅行角色时如何自行判断旁观或介入；无角色时留空'};
+      const skill=await readWorldSkill(config.rolesEnabled);
+      const schema={world:'全新世界名称',timeTagId:'从时间标签选择与世界相容的一项',environment:'空间和环境',society:'社会形态或生命条件',worldRules:['该世界独特规则'],motifs:['世界要素']};
       const task=[
         skill,'这次只执行世界案例创作，不生成图片。必须只返回完整JSON，不要Markdown或解释。结构：'+JSON.stringify(schema),
         '时间标签：'+JSON.stringify(timeTags),
         '下面是内置案例名称，必须额外创作新案例，不要照抄名称或拿模板当模型结果：'+JSON.stringify(worldCases.map(c=>c.world)),
         '新鲜度：'+randomUUID(),'用户方向：'+JSON.stringify(seed||'创作一个全新且自洽的旅行世界'),
         '旅行方式：'+(config.rolesEnabled===false?'观察世界，无旅行角色，不使用预设人物、日记或专属称呼':'角色旅行，偏好为'+JSON.stringify(config.characters||'当前选定角色')),
-        '先决定世界，再选择与该世界相容的时间。侏罗纪不得配未来地球年份；小说世界标明原创同人平行分支、纪年由世界自身决定。主题是发生什么，基调是如何叙述，发展方向是以后如何变化，三个概念不要重复堆砌。每一天只需一件具体小事。opening与beats只写世界事件，不出现旅行角色姓名。',
+        '先决定世界，再选择与该世界相容的时间。空间、环境、社会与独特规则作为世界事实；旅行者立场、身份、成败和结局由后续实际剧情决定。设定应有实质差异，不只是换名字。',
       ].join('\n\n');
       let idea,previousError='';const attempts=[],start=Date.now();await mkdir(drafts,{recursive:true});
       for(let attempt=1;attempt<=3;attempt++){

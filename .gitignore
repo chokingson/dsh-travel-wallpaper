@@ -1,27 +1,12 @@
-# Local dependencies and generated files
 node_modules/
-coverage/
 *.tgz
-*.zip
-# Credentials and personal configuration
 .env
 .env.*
-.npmrc
-credentials*
-auth.json
-config.json
-*.pem
-*.key
-# Personal runtime data
 .dsh/
-planet-news/
-references/
 issues/
-wallpaper/
+collections/
 logs/
 *.log
-# OS and editor files
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
+credentials*
+.credentials*
+/handoff/

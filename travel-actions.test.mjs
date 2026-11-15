@@ -39,6 +39,17 @@ test('booking uses tomorrow China day, selected hour and a locked role snapshot'
   for (const hour of [-1, 24, 1.5, undefined]) await assert.rejects(f.actions.book({ ...base, hour }), /小时|hour/);
 });
 
+test('booking and restart retries preserve immutable ordered party and independent personas',async t=>{
+ const party=[{id:'one',name:'甲',persona:'安静',addressee:'船长',referenceId:'builtin-deepseek'},{id:'two',name:'乙',persona:'外向',addressee:'朋友',referenceId:'builtin-gpt'}];
+ const f=await fixture(t),booking=await f.actions.book({...base,party});
+ party[0].persona='已被后来编辑';
+ f.setClock('2026-11-09T00:00:00Z');const first=await f.actions.claimDue({...base,party:[party[1]]});
+ assert.equal(first.config.party.length,2);assert.equal(first.config.party[0].persona,'安静');assert.equal(first.config.party[0].addressee,'船长');
+ await f.actions.rememberExecution(booking.id,first.config,first.resumeIssueId);await f.actions.finish(booking.id,{error:Error('temporary')});
+ f.setClock((await f.actions.getBooking()).nextRetryAt);const retry=await f.restart().claimDue({...base,party:[]});
+ assert.deepEqual(retry.executionConfig.party,first.config.party);assert.equal(retry.resumeIssueId,first.resumeIssueId);
+});
+
 test('cancel hides booking while preserving canceled state and never claims it', async t => {
   const f = await fixture(t); await f.actions.book(base);
   assert.equal(await f.actions.cancel(), null);
@@ -75,14 +86,13 @@ test('restart resumes stored execution and issue once without changing destinati
   assert.equal((await restarted.getBooking()).state, 'completed');
 });
 
-test('an old completion cannot overwrite a newer booking, and failed bookings do not loop', async t => {
-  const f = await fixture(t); const old = await f.actions.book(base); const newer = await f.actions.book(base);
-  await f.actions.finish(old.id, { issueId: 'old' });
-  await f.actions.rememberExecution(old.id, base, 'old');
-  assert.equal((await f.actions.getBooking()).id, newer.id);
-  await f.actions.finish(newer.id, { error: new Error('服务失败') });
-  assert.equal((await f.actions.getBooking()).state, 'error');
-  f.setClock('2026-11-12T00:00:00Z'); assert.equal(await f.actions.claimDue(base), null);
+test('新预约保留旧取消历史，失败预约3分钟后恢复原批次', async t => {
+ const f=await fixture(t);const old=await f.actions.book(base),newer=await f.actions.book(base);
+ await f.actions.finish(old.id,{issueId:'old'});assert.equal((await f.actions.getBooking()).id,newer.id);
+ f.setClock('2026-11-09T00:00:00Z');const claimed=await f.actions.claimDue(base);await f.actions.rememberExecution(newer.id,{...base,world:'fixed world'},claimed.resumeIssueId);
+ await f.actions.finish(newer.id,{error:Error('service failed')});const failed=await f.actions.getBooking();assert.equal(failed.state,'retrying');assert.equal(await f.actions.claimDue(base),null);
+ f.setClock(failed.nextRetryAt);const retry=await f.actions.claimDue(base);assert.equal(retry.executionConfig.world,'fixed world');assert.equal(retry.resumeIssueId,claimed.resumeIssueId);
+ const history=await f.actions.history();assert.equal(history.find(t=>t.id===old.id).state,'canceled');assert.ok(history.find(t=>t.id===newer.id).events.some(e=>e.event==='failed'));
 });
 
 test('blindbox selects a fresh DSH world today and keeps role, reference and rendering preferences', async t => {
@@ -175,4 +185,10 @@ test('shared config mutation leaves a newer interaction untouched', async t => {
   await f.actions.prepare(base, { interaction: { mode: 'reply', text: '较旧命令' } });
   assert.equal(f.readConfig().interactionPrompt, '较新的另一条命令');
   assert.equal(f.readConfig().interactionId, 'newer-id');
+});
+
+test('取消世界生成后晚到结果不得保存新世界',async t=>{
+ let ready,release;const entered=new Promise(r=>ready=r),gate=new Promise(r=>release=r);const controller=new AbortController();
+ const f=await fixture(t,{composer:{async generate(){ready();await gate;return{id:'g',source:'dsh'};},async confirm(){return{world:'late world',tripSource:'dsh',tripPrompt:'late'};}}});
+ const run=f.actions.prepare(base,{blindbox:true,signal:controller.signal});await entered;controller.abort();release();await assert.rejects(run,{name:'AbortError'});assert.equal(f.readConfig().world,'旧世界');
 });

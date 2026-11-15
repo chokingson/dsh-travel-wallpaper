@@ -1,7 +1,9 @@
+import {activeParty,referenceBindings,partyInstructions} from './party.js';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { promptParts } from './catalog.js';
 import { effectiveConfig, observationGuard } from './mode-config.js';
+import {worldContext} from './world-context.js';
 export { effectiveConfig } from './mode-config.js';
 
 export const placeholders = {
@@ -12,14 +14,16 @@ export const placeholders = {
 };
 export const carriers = [ ['auto','随世界选择'],['broadcast','新闻演播屏'],['newspaper','纸媒／报纸'],['bamboo','竹简／卷轴'],['stone','石壁刻字'],['hologram','全息投影'],['billboard','城市广告大屏'],['monitor','电脑／办公桌显示器'],['alien','外星科技显示器'],['custom','自定义载体'] ];
 export async function readPromptSkill(mode,rolesEnabled=true) {
-  const name = rolesEnabled===false?'travel-world-observation':mode === 'reference' ? 'travel-image-to-image' : 'travel-text-to-image';
-  return readFile(new URL(`./skills/${name}/SKILL.md`, import.meta.url), 'utf8');
+  const name = mode === 'reference' ? 'travel-image-to-image' : 'travel-text-to-image';
+  const base=await readFile(new URL(`./skills/${name}/SKILL.md`, import.meta.url), 'utf8');
+  return rolesEnabled===false?base+'\n\n'+await readFile(new URL('./skills/travel-world-observation/SKILL.md',import.meta.url),'utf8'):base;
 }
+export async function readWorldSkill(rolesEnabled=true){const base=await readFile(new URL('./skills/travel-world-generation/SKILL.md',import.meta.url),'utf8');return rolesEnabled===false?base+'\n\n'+observationGuard:base;}
 export async function streamText(llm, task, config, maxTokens = 1800) {
   if (!llm?.stream) throw new Error('DSH文本服务不可用');
   let output = '';
   for await (const chunk of llm.stream({ provider: config.textProvider || 'deepseek-account', model: config.textModel || 'deepseek-flash',
-    reasoningEffort: 'off', maxTokens, messages: [{ role: 'user', content: [{ type: 'text', text: task }] }], signal: AbortSignal.timeout(config.textTimeoutMs||60_000) })) {
+    reasoningEffort: 'off', maxTokens, messages: [{ role: 'user', content: [{ type: 'text', text: task }] }], signal: config.textAbortSignal?AbortSignal.any([config.textAbortSignal,AbortSignal.timeout(config.textTimeoutMs||60_000)]):AbortSignal.timeout(config.textTimeoutMs||60_000) })) {
     if (chunk.type === 'text-delta') output += chunk.text;
     if (chunk.type === 'finish' && ['error','aborted','length'].includes(chunk.reason)) throw new Error(`DSH写稿未完成（${chunk.reason}），未改变设置`);
   }
@@ -28,37 +32,40 @@ export async function streamText(llm, task, config, maxTokens = 1800) {
 }
 export async function compilePrompt(llm, story, rawConfig, history = []) {
   const config = effectiveConfig(rawConfig);
+  if(Array.isArray(story.storyOutcome?.depictedMemberIds))config.depictedMemberIds=[...story.storyOutcome.depictedMemberIds];
   if(config.rolesEnabled===false) {
     story={...story,...(story.character?{title:[config.world,story.publishedAt].filter(Boolean).join(' · ')}:{}),character:''};
     history=history.filter(item=>item.rolesEnabled===false||item.characterIds?.includes('none'));
   }
   if(config.tripSource)history=history.filter(item=>(effectiveConfig(item.recipe||{}).world||item.settings?.world||item.world)===config.world);
-  let tripPrompt=config.tripPrompt;
-  if(config.interactionPrompt)story={...story,userIntervention:config.interactionPrompt,excerpt:(story.excerpt||'')+'\n'+config.interactionPrompt};
-  if(['builtin','dsh'].includes(config.tripSource)&&config.rolesEnabled!==false&&tripPrompt){
-    let roleChoice;try{roleChoice=JSON.parse(config.tripMeta||'{}').roleChoice;}catch{}
-    tripPrompt=tripPrompt.replace(/【旅行角色】[\s\S]*?(?=\n\n【|$)/,'【旅行角色】'+(config.characters||'当前选定的旅行角色')+'。'+(roleChoice||'按当前人设判断旁观或介入，延续既有选择。'));
-  }
+  const context=worldContext(config),tripPrompt=context.structured?context.setting:config.tripPrompt;
+  config.textPrompt=context.textRequirements;
+  const request=story.worldEvent?story.worldEvent.currentRequest||'':config.interactionPrompt||'';
+  if(request)story={...story,userIntervention:request};
+  if(context.structured)config.rules=[context.facts.environment,context.facts.society,...context.facts.rules].filter(Boolean).join('\n');
   const userPrompt = tripPrompt?.trim()
     ? tripPrompt+(config.imageToImage&&config.referenceInstructions?'\n\n参考图补充要求：'+config.referenceInstructions:'')
     : config.imageToImage ? config.referenceInstructions : config.textPrompt;
   const fallback = `${story.title || config.topic || config.world || '一次新的旅行'}。${story.character || config.characters || ''}。${story.excerpt || ''}`;
   let scene = userPrompt?.trim() || fallback;
-  if(config.interactionPrompt)scene+='\n\n'+config.interactionPrompt;
-  if (config.usePromptSkills !== false && config.promptMode !== 'direct') {
+  if(tripPrompt?.trim()&&config.textPrompt?.trim())scene+='\n\n本次文字要求：'+config.textPrompt;
+  if(request)scene+='\n\n'+request;
+  if(story.storyOutcome?.description)scene+='\n\n【本次已确定事件】\n'+story.storyOutcome.description;
+  const organized=config.usePromptSkills !== false && config.promptMode !== 'direct';
+  if (organized) {
     const skill = await readPromptSkill(config.imageToImage ? 'reference' : 'text',config.rolesEnabled);
-    scene = await streamText(llm, `${skill}\n\n按照此Skill整理下面的数据，只输出最终生图提示词。参考图是否启用：${Boolean(config.imageToImage)}。用户具体要求优先；未填写的示例不在数据中。\n${JSON.stringify({ userPrompt: userPrompt || '', story, character: config.characters,
+    scene = await streamText(llm, `${skill}\n\n${partyInstructions(config)}\n\n按照此Skill整理下面的数据，只输出最终生图提示词。参考图是否启用：${Boolean(config.imageToImage)}。用户具体要求优先；未填写的示例不在数据中。\n${JSON.stringify({ userPrompt: userPrompt || '', textRequirements: config.textPrompt||'', story, character: config.characters, party:activeParty(config),referenceBindings:referenceBindings(config),
       style: config.style, era: config.era, world: config.world, tags: config.tags, rules: config.rules, extraPrompt: config.extraPrompt,
       textDensity: config.textDensity, textCarrier: config.textCarrier, textContent: config.textContent, carrierInstructions: config.carrierInstructions,
       referenceInstructions: config.referenceInstructions, width: config.width || 1920, height: config.height || 1080,
-      previousTopics: history.map(item=>item.story?.title).filter(Boolean).slice(0,4) })}`, config);
+      worldFacts:context.facts,candidateInspiration:context.inspiration,currentRequest:request,eventOutcome:story.storyOutcome?.description||'',previousTopics: history.filter(item=>item.state==='published').map(item=>item.story?.title).filter(Boolean).slice(0,4) })}`, config);
   }
-  if(config.tripSource&&story.excerpt)scene+='\n\n【当日事件推进】\n'+story.excerpt;
-  return promptParts({ ...config, characters: story.character || config.characters }, scene).map(part=>part.text).join('');
+  if(!organized&&config.tripSource&&story.excerpt&&!story.storyOutcome?.description)scene+='\n\n【剧情上下文】\n'+story.excerpt;
+  return promptParts({ ...config, characters: story.character || config.characters }, scene,{organized}).map(part=>part.text).join('');
 }
 export async function generateWorld(llm, config, seed = '') {
   config=effectiveConfig(config);
-  const skill = await readPromptSkill('text',config.rolesEnabled);
+  const skill = await readWorldSkill(config.rolesEnabled);
   const fields = { topic:'新主题',world:'新世界',era:'时代',tags:'逗号分隔的视觉标签',characters:'旅行角色与本次身份／状态',rules:'文明与故事设定',style:'画风短描述',
     textDensity:'none或sparse或rich',textCarrier:carriers.map(item=>item[0]).join('/'),textContent:'一句显示在载体上的文案；无字时为空',textPrompt:'一段完整的用户创作需求' };
   if(config.rolesEnabled===false)delete fields.characters;

@@ -1,6 +1,6 @@
 {
   "name": "dsh-planet-news",
-  "version": "0.14.1",
+  "version": "0.15.1",
   "description": "旅行壁纸：带上心爱的角色或赛博分身，前往不同世界",
   "type": "module",
   "main": "./index.js",
@@ -10,7 +10,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "test": "node --test test.mjs travel.test.mjs archive.test.mjs character.test.mjs mode.test.mjs delivery.test.mjs matrix.test.mjs widget.test.mjs delivery-api.test.mjs previews.test.mjs request-guard.test.mjs world-cases.test.mjs trip-composer.test.mjs trip-events.test.mjs trip-api.test.mjs trip-daily.test.mjs reference-library.test.mjs reference-archive.test.mjs reference-api.test.mjs daily-narrative.test.mjs downloads.test.mjs client-refresh.test.mjs native-halo.test.mjs travel-actions.test.mjs travel-refresh-api.test.mjs lockscreen.test.mjs config-store.test.mjs about-support.test.mjs"
+    "test": "node --test test.mjs travel.test.mjs archive.test.mjs character.test.mjs mode.test.mjs delivery.test.mjs matrix.test.mjs widget.test.mjs delivery-api.test.mjs previews.test.mjs request-guard.test.mjs world-cases.test.mjs trip-composer.test.mjs trip-events.test.mjs trip-api.test.mjs trip-daily.test.mjs reference-library.test.mjs reference-archive.test.mjs reference-api.test.mjs daily-narrative.test.mjs downloads.test.mjs client-refresh.test.mjs native-halo.test.mjs travel-actions.test.mjs travel-refresh-api.test.mjs lockscreen.test.mjs config-store.test.mjs about-support.test.mjs scheduled-tasks.test.mjs scheduler-recovery.test.mjs comfy-render.test.mjs cloud-render-recovery.test.mjs styles-short.test.mjs world-cases-v2-data.test.mjs prompt-integration.test.mjs story-outcome.test.mjs integration-review.test.mjs party.test.mjs party-job.test.mjs channels-party.test.mjs story-options.test.mjs specialties.test.mjs specialties-catalog.test.mjs world-visits.test.mjs subscription-auth.test.mjs auth-recovery.test.mjs"
   },
   "files": [
     "index.js",
@@ -85,7 +85,41 @@
     "scripts/sync-about-docs.mjs",
     "LICENSE",
     "NOTICE",
-    "docs/"
+    "docs/",
+    "scheduled-tasks.js",
+    "scheduled-tasks.test.mjs",
+    "scheduler-recovery.test.mjs",
+    "comfy-render.js",
+    "comfy-render.test.mjs",
+    "cloud-render-recovery.js",
+    "cloud-render-recovery.test.mjs",
+    "TASK-RECOVERY.md",
+    "styles-short.test.mjs",
+    "world-cases-v2-data.js",
+    "world-cases-v2-data.test.mjs",
+    "world-cases-legacy.js",
+    "world-context.js",
+    "prompt-integration.test.mjs",
+    "story-outcome.js",
+    "story-outcome.test.mjs",
+    "integration-review.test.mjs",
+    "party.js",
+    "story-options.js",
+    "party.test.mjs",
+    "party-job.test.mjs",
+    "channels-party.test.mjs",
+    "story-options.test.mjs",
+    "specialties.js",
+    "specialties-catalog.js",
+    "assets/specialties/",
+    "scripts/sync-specialties-docs.mjs",
+    "specialties.test.mjs",
+    "specialties-catalog.test.mjs",
+    "world-visits.js",
+    "world-visits.test.mjs",
+    "subscription-auth.test.mjs",
+    "auth-recovery.js",
+    "auth-recovery.test.mjs"
   ],
   "dsh": {
     "bundle": {
